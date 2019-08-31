@@ -10,6 +10,8 @@ data class Language(val lang: Locale) {
     }
 }
 
+data class MessageKey(val family: String, val key: String)
+
 data class Application(val id: String, val name: String, val defaultLocale: Language)
 
-data class Message(val application: Application, val language: Option<Language>, val key: String, val content: String)
+data class Message(val application: Application, val language: Option<Language>, val key: MessageKey, val content: String)
