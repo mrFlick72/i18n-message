@@ -21,4 +21,13 @@ class CassandraApplicationRepository(private val cassandraTemplate: CassandraTem
                     }
                 }
     }
+
+    override fun delete(application: Application): IO<Application> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun findFor(id: String): IO<Application> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }
