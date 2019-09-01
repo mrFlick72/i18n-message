@@ -5,17 +5,19 @@ import it.valeriovaudi.i18nmessage.Language
 import it.valeriovaudi.i18nmessage.Language.Companion.defaultLanguage
 import junit.framework.Assert.fail
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.core.Is
-import org.hamcrest.core.Is.`is`
-
-import org.junit.Assert.*
+import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.BDDMockito.given
+import org.mockito.Mock
+import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.cassandra.core.CassandraTemplate
+import org.springframework.data.cassandra.core.cql.CqlOperations
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.DockerComposeContainer
 import java.io.File
@@ -58,5 +60,37 @@ class CassandraApplicationRepositoryTest {
         { row: Row, rowNum: Int -> Application(id = row.getString("id"), defaultLanguage = Language(Locale(row.getString("defaultLanguage"))), name = row.getString("name")) }
 
         assertThat(actual, equalTo(expected))
+    }
+}
+
+
+@RunWith(MockitoJUnitRunner::class)
+class CassandraApplicationRepositoryIT {
+
+    @Mock
+    lateinit var cassandraTemplate: CassandraTemplate
+
+    @Mock
+    lateinit var cqlOperations: CqlOperations
+
+    @Test
+    fun `save a new Application`() {
+        val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
+
+        val expected = Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
+
+        val insertQuery = "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES ('AN_APPLICATION_ID', 'AN_APPLICATION', 'en')"
+        given(cassandraTemplate.cqlOperations).willReturn(cqlOperations)
+        given(cqlOperations.execute(insertQuery)).willReturn(false)
+
+        val save = cassandraApplicationRepository.save(expected)
+        save.attempt()
+                .unsafeRunSync()
+                .fold(
+                        {},
+                        { fail() }
+
+                )
+        verify(cqlOperations).execute(insertQuery)
     }
 }
