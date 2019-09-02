@@ -1,27 +1,23 @@
 package it.valeriovaudi.i18nmessage.application
 
-import com.datastax.driver.core.Row
-import it.valeriovaudi.i18nmessage.Language
 import it.valeriovaudi.i18nmessage.Language.Companion.defaultLanguage
+import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.isA
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
-import org.mockito.BDDMockito.given
-import org.mockito.Mock
-import org.mockito.Mockito.verify
-import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.cassandra.core.CassandraTemplate
-import org.springframework.data.cassandra.core.cql.CqlOperations
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.DockerComposeContainer
 import java.io.File
-import java.util.*
 
 @SpringBootTest
 @RunWith(SpringRunner::class)
@@ -32,7 +28,12 @@ class ReadOnCassandraApplicationRepositoryTest {
         @JvmField
         val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/cassandra/docker-compose.yml"))
                 .withExposedService("cassandra_1", 9042)
+
+        @ClassRule
+        @JvmField
+        var exception = ExpectedException.none()
     }
+
 
     @Before
     fun setUp() {
@@ -56,6 +57,22 @@ class ReadOnCassandraApplicationRepositoryTest {
                 .fold(
                         { it.printStackTrace(); fail() },
                         { assertThat(it, equalTo(expected)) }
+                )
+    }
+
+    @Test
+    fun `find by id an Application that does not exist`() {
+        val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
+
+        val save = cassandraApplicationRepository.findFor("A_NOT_EXISTED_APPLICATION")
+        save.attempt()
+                .unsafeRunSync()
+                .fold(
+                        {
+                            it.printStackTrace()
+                            assertTrue(it is EmptyResultDataAccessException)
+                        },
+                        { fail("I should do not find any application for the input") }
                 )
     }
 }
