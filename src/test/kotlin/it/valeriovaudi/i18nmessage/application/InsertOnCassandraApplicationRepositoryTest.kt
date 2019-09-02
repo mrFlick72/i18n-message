@@ -80,9 +80,9 @@ class InsertOnCassandraApplicationRepositoryTest {
 
         val expected = Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
 
-        val insertQuery = "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES ('AN_APPLICATION_ID', 'AN_APPLICATION', 'en')"
+        val insertQuery = "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES (?,?,?)"
         given(cassandraTemplate.cqlOperations).willReturn(cqlOperations)
-        given(cqlOperations.execute(insertQuery)).willReturn(false)
+        given(cqlOperations.execute(insertQuery, "AN_APPLICATION_ID", "AN_APPLICATION", "en")).willReturn(false)
 
         val save = cassandraApplicationRepository.save(expected)
         save.attempt()
@@ -92,6 +92,6 @@ class InsertOnCassandraApplicationRepositoryTest {
                         { fail() }
 
                 )
-        verify(cqlOperations).execute(insertQuery)
+        verify(cqlOperations).execute(insertQuery, "AN_APPLICATION_ID", "AN_APPLICATION", "en")
     }
 }

@@ -6,24 +6,15 @@ import it.valeriovaudi.i18nmessage.Language
 import org.springframework.data.cassandra.core.CassandraTemplate
 import java.util.*
 
-typealias InsertQueryGenerator = (Application) -> String
-typealias SelectQueryGenerator = (String) -> String
-
-val insertQueryFor: InsertQueryGenerator =
-        { application ->
-            "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) " +
-                    "VALUES " +
-                    "('${application.id}', '${application.name}', '${application.defaultLanguage.lang}')"
-        }
-val selectQueryFor: SelectQueryGenerator =
-        { id -> "SELECT * FROM i18n_messages.APPLICATION WHERE id=?" }
+private const val INSERT_QUERY: String = "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES (?,?,?)"
+private const val SELECT_QUERY: String = "SELECT * FROM i18n_messages.APPLICATION WHERE id=?"
 
 val applicationMapper = { row: Row, _: Int -> Application(id = row.getString("id"), defaultLanguage = Language(Locale(row.getString("defaultLanguage"))), name = row.getString("name")) }
 
 class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
 
     override fun save(application: Application): IO<Application> =
-            IO { cassandraTemplate.cqlOperations.execute(insertQueryFor(application)) }
+            IO { cassandraTemplate.cqlOperations.execute(INSERT_QUERY, application.id, application.name, application.defaultLanguage.asString()) }
                     .flatMap {
                         when (it) {
                             true -> IO { application }
@@ -37,6 +28,6 @@ class CassandraApplicationRepository(private val cassandraTemplate: CassandraTem
 
 
     override fun findFor(id: String): IO<Application> =
-            IO { cassandraTemplate.cqlOperations.queryForObject("SELECT * FROM i18n_messages.APPLICATION WHERE id=?", applicationMapper, arrayOf(id)) }
+            IO { cassandraTemplate.cqlOperations.queryForObject(SELECT_QUERY, applicationMapper, arrayOf(id)) }
 
 }

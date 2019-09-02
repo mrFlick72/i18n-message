@@ -10,6 +10,8 @@ data class Language(val lang: Locale) {
         fun defaultLanguage() = Language(Locale.ENGLISH)
         fun availableLanguages() = listOf(Language(Locale.ITALIAN), Language(Locale.ENGLISH))
     }
+
+    fun asString(): String = lang.toString()
 }
 
 data class MessageKey(val family: String, val key: String)
