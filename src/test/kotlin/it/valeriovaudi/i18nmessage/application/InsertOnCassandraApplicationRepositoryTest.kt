@@ -5,6 +5,7 @@ import it.valeriovaudi.i18nmessage.Language
 import it.valeriovaudi.i18nmessage.Language.Companion.defaultLanguage
 import junit.framework.Assert.fail
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.ClassRule
@@ -25,7 +26,7 @@ import java.util.*
 
 @SpringBootTest
 @RunWith(SpringRunner::class)
-class CassandraApplicationRepositoryTest {
+class InsertOnCassandraApplicationRepositoryIT {
 
     companion object {
         @ClassRule
@@ -65,7 +66,7 @@ class CassandraApplicationRepositoryTest {
 
 
 @RunWith(MockitoJUnitRunner::class)
-class CassandraApplicationRepositoryIT {
+class InsertOnCassandraApplicationRepositoryTest {
 
     @Mock
     lateinit var cassandraTemplate: CassandraTemplate
