@@ -3,6 +3,7 @@ package it.valeriovaudi.i18nmessage.application
 import arrow.effects.IO
 import com.datastax.driver.core.Row
 import it.valeriovaudi.i18nmessage.Language
+import it.valeriovaudi.i18nmessage.infrastructure.cassandra.NotAppliedStatementException
 import org.springframework.data.cassandra.core.CassandraTemplate
 import java.util.*
 

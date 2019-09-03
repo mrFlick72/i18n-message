@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage.application
+package it.valeriovaudi.i18nmessage.infrastructure.cassandra
 
 import java.lang.RuntimeException
 
