@@ -3,7 +3,7 @@ package it.valeriovaudi.i18nmessage.application
 import arrow.effects.IO
 import com.datastax.driver.core.Row
 import it.valeriovaudi.i18nmessage.Language
-import it.valeriovaudi.i18nmessage.infrastructure.cassandra.NotAppliedStatementException
+import org.slf4j.LoggerFactory
 import org.springframework.data.cassandra.core.CassandraTemplate
 import java.util.*
 
@@ -19,26 +19,24 @@ val applicationMapper = { row: Row, _: Int -> Application(id = idFor(row), defau
 
 class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
 
+    val LOGGER = LoggerFactory.getLogger(CassandraApplicationRepository::class.java);
+
     override fun save(application: Application): IO<Application> =
             IO { cassandraTemplate.cqlOperations.execute(INSERT_QUERY, application.id, application.name, application.defaultLanguage.asString()) }
-                    .flatMap {
-                        when (it) {
-                            true -> IO { application }
-                            false -> IO.raiseError(NotAppliedStatementException("The statement was not applied."))
-                        }
-                    }
+                    .flatMap { logAndPassThrough(it, application) }
 
 
     override fun deleteFor(id: String): IO<Unit> =
             IO { cassandraTemplate.cqlOperations.execute(DELETE_QUERY, id) }
-                    .flatMap {
-                        when (it) {
-                            true -> IO { Unit }
-                            false -> IO.raiseError(NotAppliedStatementException("The statement was not applied."))
-                        }
-                    }
+                    .flatMap { logAndPassThrough(it, Unit) }
+
 
     override fun findFor(id: String): IO<Application> =
             IO { cassandraTemplate.cqlOperations.queryForObject(SELECT_QUERY, applicationMapper, arrayOf(id)) }
+
+    private fun <T> logAndPassThrough(executed: Boolean, value: T): IO<T> {
+        LOGGER.debug("the query is executed: $executed")
+        return IO { value }
+    }
 
 }

@@ -9,14 +9,9 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.BDDMockito.given
-import org.mockito.Mock
-import org.mockito.Mockito.verify
-import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.cassandra.core.CassandraTemplate
-import org.springframework.data.cassandra.core.cql.CqlOperations
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.DockerComposeContainer
@@ -59,37 +54,5 @@ class InsertOnCassandraApplicationRepositoryIT {
                 )
         val actual = findApplicationFor(id, cassandraTemplate.cqlOperations).attempt().unsafeRunSync().orNull()
         assertThat(actual, equalTo(expected))
-    }
-}
-
-
-@RunWith(MockitoJUnitRunner::class)
-class InsertOnCassandraApplicationRepositoryTest {
-
-    @Mock
-    lateinit var cassandraTemplate: CassandraTemplate
-
-    @Mock
-    lateinit var cqlOperations: CqlOperations
-
-    @Test
-    fun `save a new Application`() {
-        val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
-
-        val expected = Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
-
-        val insertQuery = "INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES (?,?,?)"
-        given(cassandraTemplate.cqlOperations).willReturn(cqlOperations)
-        given(cqlOperations.execute(insertQuery, "AN_APPLICATION_ID", "AN_APPLICATION", "en")).willReturn(false)
-
-        val save = cassandraApplicationRepository.save(expected)
-        save.attempt()
-                .unsafeRunSync()
-                .fold(
-                        {},
-                        { fail() }
-
-                )
-        verify(cqlOperations).execute(insertQuery, "AN_APPLICATION_ID", "AN_APPLICATION", "en")
     }
 }
