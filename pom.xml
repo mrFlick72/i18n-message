@@ -37,6 +37,16 @@
             <artifactId>arrow-effects</artifactId>
             <version>${arrow.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.arrow-kt</groupId>
+            <artifactId>arrow-effects</artifactId>
+            <version>${arrow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.arrow-kt</groupId>
+            <artifactId>arrow-syntax</artifactId>
+            <version>${arrow.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

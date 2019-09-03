@@ -1,11 +1,9 @@
 package it.valeriovaudi.i18nmessage.application
 
-import com.datastax.driver.core.Row
-import it.valeriovaudi.i18nmessage.Language
+import arrow.core.orNull
 import it.valeriovaudi.i18nmessage.Language.Companion.defaultLanguage
 import junit.framework.Assert.fail
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.ClassRule
@@ -19,12 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.cassandra.core.CassandraTemplate
 import org.springframework.data.cassandra.core.cql.CqlOperations
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
 import org.testcontainers.containers.DockerComposeContainer
 import java.io.File
-import java.util.*
 
 @SpringBootTest
+@DirtiesContext
 @RunWith(SpringRunner::class)
 class InsertOnCassandraApplicationRepositoryIT {
 
@@ -48,7 +47,8 @@ class InsertOnCassandraApplicationRepositoryIT {
     fun `save a new Application`() {
         val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
 
-        val expected = Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
+        val id = "AN_APPLICATION_ID"
+        val expected = Application(id, "AN_APPLICATION", defaultLanguage())
 
         val save = cassandraApplicationRepository.save(expected)
         save.attempt()
@@ -57,9 +57,7 @@ class InsertOnCassandraApplicationRepositoryIT {
                         { it.printStackTrace(); fail() },
                         { assertThat(it, equalTo(expected)) }
                 )
-        val actual = cassandraTemplate.cqlOperations.queryForObject("SELECT * FROM i18n_messages.APPLICATION WHERE ID = 'AN_APPLICATION_ID'")
-        { row: Row, rowNum: Int -> Application(id = row.getString("id"), defaultLanguage = Language(Locale(row.getString("defaultLanguage"))), name = row.getString("name")) }
-
+        val actual = findApplicationFor(id, cassandraTemplate.cqlOperations).attempt().unsafeRunSync().orNull()
         assertThat(actual, equalTo(expected))
     }
 }
