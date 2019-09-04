@@ -17,7 +17,7 @@ val nameFor = { row: Row -> row.getString("name") }
 
 val applicationMapper = { row: Row, _: Int -> Application(id = idFor(row), defaultLanguage = defaultLanguageFor(row), name = nameFor(row)) }
 
-class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
+open class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
 
     val LOGGER = LoggerFactory.getLogger(CassandraApplicationRepository::class.java);
 
@@ -30,7 +30,6 @@ class CassandraApplicationRepository(private val cassandraTemplate: CassandraTem
             IO { cassandraTemplate.cqlOperations.execute(DELETE_QUERY, id) }
                     .flatMap { logAndPassThrough(it, Unit) }
 
-
     override fun findFor(id: String): IO<Application> =
             IO { cassandraTemplate.cqlOperations.queryForObject(SELECT_QUERY, applicationMapper, arrayOf(id)) }
 
@@ -38,5 +37,4 @@ class CassandraApplicationRepository(private val cassandraTemplate: CassandraTem
         LOGGER.debug("the query is executed: $executed")
         return IO { value }
     }
-
 }
