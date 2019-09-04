@@ -10,7 +10,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper
 
@@ -28,15 +29,13 @@ class ApplicationEndPointTest {
 
     @Test
     fun `we are able to save a new Application`() {
-
         val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
         val io = IO { application }
 
         given(applicationRepository.save(application))
                 .willReturn(io)
 
-
-        mockMvc.perform(post("/application")
+        mockMvc.perform(put("/application")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(application)))
                 .andExpect(status().isCreated)
@@ -44,17 +43,36 @@ class ApplicationEndPointTest {
 
     @Test
     fun `save a new Application goes in error`() {
-
         val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
         val io = IO.raiseError<Application>(RuntimeException())
 
         given(applicationRepository.save(application))
                 .willReturn(io)
 
-
-        mockMvc.perform(post("/application")
+        mockMvc.perform(put("/application")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(application)))
                 .andExpect(status().isInternalServerError)
+    }
+
+    @Test
+    fun `delete an Application`() {
+        given(applicationRepository.deleteFor("AN_ID"))
+                .willReturn(IO { Unit })
+
+        mockMvc.perform(delete("/application/AN_ID"))
+                .andExpect(status().isNoContent)
+    }
+
+    @Test
+    fun `get an Application`() {
+        val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
+
+        given(applicationRepository.findFor("AN_ID"))
+                .willReturn(IO { application })
+
+        mockMvc.perform(get("/application/AN_ID"))
+                .andExpect(status().isOk)
+                .andExpect(content().string(objectMapper.writeValueAsString(application)))
     }
 }
