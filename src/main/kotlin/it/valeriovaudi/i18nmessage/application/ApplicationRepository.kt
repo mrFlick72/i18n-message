@@ -9,4 +9,6 @@ interface ApplicationRepository {
     fun deleteFor(id: String): IO<Unit>
 
     fun findFor(id: String): IO<Application>
+
+    fun findAll(): IO<List<Application>>
 }

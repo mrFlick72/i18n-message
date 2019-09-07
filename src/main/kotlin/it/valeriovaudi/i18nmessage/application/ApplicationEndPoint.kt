@@ -7,6 +7,14 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class ApplicationEndPoint(private val applicationRepository: CassandraApplicationRepository) {
 
+    @GetMapping("/application")
+    fun getApplications() =
+            applicationRepository.findAll()
+                    .attempt()
+                    .unsafeRunSync()
+                    .fold(handleInternalServerError(),
+                            { ResponseEntity.ok(it) })
+
     @GetMapping("/application/{id}")
     fun getApplication(@PathVariable id: String) =
             applicationRepository.findFor(id)

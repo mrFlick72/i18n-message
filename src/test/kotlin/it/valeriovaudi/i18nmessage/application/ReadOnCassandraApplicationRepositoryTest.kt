@@ -35,11 +35,16 @@ class ReadOnCassandraApplicationRepositoryTest {
         var exception = ExpectedException.none()
     }
 
+    lateinit var cassandraApplicationRepository: CassandraApplicationRepository
+
     @Before
     fun setUp() {
         cassandraTemplate.cqlOperations.execute("CREATE KEYSPACE IF NOT EXISTS i18n_messages WITH replication = {'class':'SimpleStrategy','replication_factor':'1'};")
         cassandraTemplate.cqlOperations.execute("CREATE TABLE IF NOT EXISTS i18n_messages.APPLICATION (id varchar primary key, name varchar,defaultLanguage varchar);")
         cassandraTemplate.cqlOperations.execute("INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES ('AN_APPLICATION_ID', 'AN_APPLICATION', 'en');")
+        cassandraTemplate.cqlOperations.execute("INSERT INTO i18n_messages.APPLICATION (id, name, defaultLanguage) VALUES ('ANOTHER_APPLICATION_ID', 'AN_APPLICATION', 'en');")
+
+        cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
     }
 
     @Autowired
@@ -47,7 +52,6 @@ class ReadOnCassandraApplicationRepositoryTest {
 
     @Test
     fun `find by id an Application`() {
-        val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
 
         val expected = Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
 
@@ -62,8 +66,6 @@ class ReadOnCassandraApplicationRepositoryTest {
 
     @Test
     fun `find by id an Application that does not exist`() {
-        val cassandraApplicationRepository = CassandraApplicationRepository(cassandraTemplate)
-
         val save = cassandraApplicationRepository.findFor("A_NOT_EXISTED_APPLICATION")
         save.attempt()
                 .unsafeRunSync()
@@ -73,6 +75,22 @@ class ReadOnCassandraApplicationRepositoryTest {
                             assertTrue(it is EmptyResultDataAccessException)
                         },
                         { fail("I should do not find any application for the input") }
+                )
+    }
+
+    @Test
+    fun `find all Applications `() {
+        val expected = listOf(
+                Application("AN_APPLICATION_ID", "AN_APPLICATION", defaultLanguage()),
+                Application("ANOTHER_APPLICATION_ID", "AN_APPLICATION", defaultLanguage())
+        )
+
+        val save = cassandraApplicationRepository.findAll()
+        save.attempt()
+                .unsafeRunSync()
+                .fold(
+                        { it.printStackTrace(); fail("I should find any application for the input") },
+                        { assertThat(it, equalTo(expected)) }
                 )
     }
 }

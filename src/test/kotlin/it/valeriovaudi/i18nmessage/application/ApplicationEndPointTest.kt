@@ -75,4 +75,19 @@ class ApplicationEndPointTest {
                 .andExpect(status().isOk)
                 .andExpect(content().string(objectMapper.writeValueAsString(application)))
     }
+
+    @Test
+    fun `get all Applications`() {
+        val applications = listOf(
+                Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage()),
+                Application("ANOTHER_ID", "ANOTHER_APPLICATION", Language.defaultLanguage())
+        )
+
+        given(applicationRepository.findAll())
+                .willReturn(IO { applications })
+
+        mockMvc.perform(get("/application"))
+                .andExpect(status().isOk)
+                .andExpect(content().string(objectMapper.writeValueAsString(applications)))
+    }
 }
