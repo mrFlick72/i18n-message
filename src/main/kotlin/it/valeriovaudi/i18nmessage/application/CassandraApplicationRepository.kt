@@ -18,27 +18,25 @@ val nameFor = { row: Row -> row.getString("name") }
 
 val applicationMapper = { row: Row, _: Int -> Application(id = idFor(row), defaultLanguage = defaultLanguageFor(row), name = nameFor(row)) }
 
-open class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
+private val LOGGER = LoggerFactory.getLogger(CassandraApplicationRepository::class.java);
 
-    val LOGGER = LoggerFactory.getLogger(CassandraApplicationRepository::class.java);
+open class CassandraApplicationRepository(private val cassandraTemplate: CassandraTemplate) : ApplicationRepository {
 
     override fun findAll(): IO<List<Application>> =
             IO { cassandraTemplate.cqlOperations.query(SELECT_ALL_QUERY, applicationMapper) }
 
-    override fun save(application: Application): IO<Application> =
+    override fun save(application: Application): IO<Unit> =
             IO { cassandraTemplate.cqlOperations.execute(INSERT_QUERY, application.id, application.name, application.defaultLanguage.asString()) }
-                    .flatMap { logAndPassThrough(it, application) }
-
+                    .map { executed ->
+                        LOGGER.debug("the query is executed: $executed")
+                    }
 
     override fun deleteFor(id: String): IO<Unit> =
             IO { cassandraTemplate.cqlOperations.execute(DELETE_QUERY, id) }
-                    .flatMap { logAndPassThrough(it, Unit) }
+                    .map { executed ->
+                        LOGGER.debug("the query is executed: $executed")
+                    }
 
     override fun findFor(id: String): IO<Application> =
             IO { cassandraTemplate.cqlOperations.queryForObject(SELECT_QUERY, applicationMapper, arrayOf(id)) }
-
-    private fun <T> logAndPassThrough(executed: Boolean, value: T): IO<T> {
-        LOGGER.debug("the query is executed: $executed")
-        return IO { value }
-    }
 }

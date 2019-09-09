@@ -4,7 +4,7 @@ import arrow.effects.IO
 
 interface ApplicationRepository {
 
-    fun save(application: Application): IO<Application>
+    fun save(application: Application): IO<Unit>
 
     fun deleteFor(id: String): IO<Unit>
 

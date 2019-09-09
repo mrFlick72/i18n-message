@@ -10,39 +10,26 @@ class ApplicationEndPoint(private val applicationRepository: CassandraApplicatio
     @GetMapping("/application")
     fun getApplications() =
             applicationRepository.findAll()
-                    .attempt()
                     .unsafeRunSync()
-                    .fold(handleInternalServerError(),
-                            { ResponseEntity.ok(it) })
+                    .let { ResponseEntity.ok(it) }
 
     @GetMapping("/application/{id}")
     fun getApplication(@PathVariable id: String) =
             applicationRepository.findFor(id)
-                    .attempt()
                     .unsafeRunSync()
-                    .fold(handleInternalServerError(),
-                            { ResponseEntity.ok(it) })
+                    .let { ResponseEntity.ok(it) }
 
 
     @PutMapping("/application")
     fun saveApplication(@RequestBody application: Application) =
             applicationRepository.save(application)
-                    .attempt()
-                    .unsafeRunSync()
-                    .fold(handleInternalServerError(),
-                            { ResponseEntity.status(HttpStatus.CREATED).build() })
+                    .let { ResponseEntity.status(HttpStatus.CREATED).build<Unit>() }
 
 
     @DeleteMapping("/application/{id}")
     fun saveApplication(@PathVariable id: String) =
             applicationRepository.deleteFor(id)
-                    .attempt()
                     .unsafeRunSync()
-                    .fold(handleInternalServerError(),
-                            { ResponseEntity.noContent().build() })
-
-
-    private fun handleInternalServerError(): (Throwable) -> ResponseEntity<Throwable> =
-            { ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(it) }
+                    .let { ResponseEntity.noContent().build<Unit>() }
 
 }

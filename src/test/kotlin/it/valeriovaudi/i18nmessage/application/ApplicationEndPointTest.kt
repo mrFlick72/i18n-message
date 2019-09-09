@@ -30,29 +30,14 @@ class ApplicationEndPointTest {
     @Test
     fun `we are able to save a new Application`() {
         val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
-        val io = IO { application }
 
         given(applicationRepository.save(application))
-                .willReturn(io)
+                .willReturn(IO { Unit })
 
         mockMvc.perform(put("/application")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(application)))
                 .andExpect(status().isCreated)
-    }
-
-    @Test
-    fun `save a new Application goes in error`() {
-        val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
-        val io = IO.raiseError<Application>(RuntimeException())
-
-        given(applicationRepository.save(application))
-                .willReturn(io)
-
-        mockMvc.perform(put("/application")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(application)))
-                .andExpect(status().isInternalServerError)
     }
 
     @Test

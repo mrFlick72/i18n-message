@@ -46,12 +46,8 @@ class InsertOnCassandraApplicationRepositoryIT {
         val expected = Application(id, "AN_APPLICATION", defaultLanguage())
 
         val save = cassandraApplicationRepository.save(expected)
-        save.attempt()
-                .unsafeRunSync()
-                .fold(
-                        { it.printStackTrace(); fail() },
-                        { assertThat(it, equalTo(expected)) }
-                )
+        save.unsafeRunSync()
+
         val actual = findApplicationFor(id, cassandraTemplate.cqlOperations).attempt().unsafeRunSync().orNull()
         assertThat(actual, equalTo(expected))
     }
