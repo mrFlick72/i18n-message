@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: i18n-messages
+  cloud:
+    config:
+      discovery:
+        enabled: true
+      fail-fast: true

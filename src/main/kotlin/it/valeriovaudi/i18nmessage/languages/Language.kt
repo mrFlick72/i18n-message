@@ -5,7 +5,6 @@ import java.util.*
 data class Language(val lang: Locale) {
     companion object {
         fun defaultLanguage() = Language(Locale.ENGLISH)
-        fun availableLanguages() = listOf(Language(Locale.ITALIAN), Language(Locale.ENGLISH))
     }
 
     fun asString(): String = lang.toString()
