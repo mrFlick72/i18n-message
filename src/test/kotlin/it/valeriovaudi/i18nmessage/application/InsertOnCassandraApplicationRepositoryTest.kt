@@ -1,7 +1,7 @@
 package it.valeriovaudi.i18nmessage.application
 
 import arrow.core.orNull
-import it.valeriovaudi.i18nmessage.Language.Companion.defaultLanguage
+import it.valeriovaudi.i18nmessage.languages.Language.Companion.defaultLanguage
 import junit.framework.Assert.fail
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat

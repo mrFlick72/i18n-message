@@ -1,7 +1,7 @@
 package it.valeriovaudi.i18nmessage.application
 
 import arrow.effects.IO
-import it.valeriovaudi.i18nmessage.Language
+import it.valeriovaudi.i18nmessage.languages.Language
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.BDDMockito.given

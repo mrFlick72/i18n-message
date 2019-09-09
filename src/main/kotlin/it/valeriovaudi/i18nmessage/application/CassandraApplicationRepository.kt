@@ -2,7 +2,7 @@ package it.valeriovaudi.i18nmessage.application
 
 import arrow.effects.IO
 import com.datastax.driver.core.Row
-import it.valeriovaudi.i18nmessage.Language
+import it.valeriovaudi.i18nmessage.languages.Language
 import org.slf4j.LoggerFactory
 import org.springframework.data.cassandra.core.CassandraTemplate
 import java.util.*
