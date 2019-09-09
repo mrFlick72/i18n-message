@@ -8,6 +8,7 @@ import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -28,6 +29,7 @@ class ApplicationEndPointTest {
     val objectMapper = ObjectMapper()
 
     @Test
+    @WithMockUser
     fun `we are able to save a new Application`() {
         val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
 
@@ -41,6 +43,7 @@ class ApplicationEndPointTest {
     }
 
     @Test
+    @WithMockUser
     fun `delete an Application`() {
         given(applicationRepository.deleteFor("AN_ID"))
                 .willReturn(IO { Unit })
@@ -50,6 +53,7 @@ class ApplicationEndPointTest {
     }
 
     @Test
+    @WithMockUser
     fun `get an Application`() {
         val application = Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage())
 
@@ -62,6 +66,7 @@ class ApplicationEndPointTest {
     }
 
     @Test
+    @WithMockUser
     fun `get all Applications`() {
         val applications = listOf(
                 Application("AN_ID", "AN_APPLICATION", Language.defaultLanguage()),
