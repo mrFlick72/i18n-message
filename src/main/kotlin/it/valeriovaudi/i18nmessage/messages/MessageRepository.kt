@@ -1,14 +1,9 @@
 package it.valeriovaudi.i18nmessage.messages
 
-import arrow.effects.IO
 
 interface MessageRepository {
 
-    fun save(message: Message)
+    fun findOne(application: String, family: String, key: String): Map<String, String>
 
-    fun delete(messageKey: MessageKey)
-
-    fun findOne(messageKey: MessageKey): IO<Message>
-
-    fun find(family: String): IO<List<Message>>
+    fun find(application: String, family: String): Map<String, String>
 }
