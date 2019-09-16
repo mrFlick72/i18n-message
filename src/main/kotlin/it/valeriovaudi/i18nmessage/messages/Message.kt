@@ -1,9 +1,8 @@
-package it.valeriovaudi.i18nmessage
+package it.valeriovaudi.i18nmessage.messages
 
 import arrow.core.Option
 import it.valeriovaudi.i18nmessage.application.Application
 import it.valeriovaudi.i18nmessage.languages.Language
-import java.util.*
 
 data class MessageKey(val family: String, val key: String)
 
