@@ -8,8 +8,10 @@ import it.valeriovaudi.i18nmessage.messages.MessageRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 
+@EnableCaching
 @SpringBootApplication
 class I18nMessageApplication {
 
