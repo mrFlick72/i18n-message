@@ -23,14 +23,14 @@ open class AwsS3MessageRepository(private val s3client: AmazonS3,
             messageKeyFor(application)
                     .let { messagesKey ->
                         Optional.ofNullable(message.objectSummaries.find(resourceBundleFinderPredicate(messagesKey, language)))
-                                .orElse(message.objectSummaries.find(defaultRsourceBundleFinderPredicate(messagesKey)))
+                                .orElse(message.objectSummaries.find(defaultResourceBundleFinderPredicate(messagesKey)))
                     }
 
-    private fun defaultRsourceBundleFinderPredicate(messagesKey: String): S3ObjectSummaryPredicate =
-            { it.key.equals("$messagesKey/messages.properties") }
+    private fun defaultResourceBundleFinderPredicate(messagesKey: String): S3ObjectSummaryPredicate =
+            { it.key == "$messagesKey/messages.properties" }
 
     private fun resourceBundleFinderPredicate(messagesKey: String, language: String): S3ObjectSummaryPredicate =
-            { it.key.equals("$messagesKey/messages_$language.properties") }
+            { it.key == "$messagesKey/messages_$language.properties" }
 
     private fun s3MessageBundleContentFor(message: S3ObjectSummary) =
             s3client.getObject(bucketName, message.key)
