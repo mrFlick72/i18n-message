@@ -1,3 +1,4 @@
+/*
 package it.valeriovaudi.i18nmessage.config
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -7,7 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableWebSecurity
 class SecurityConfig : WebSecurityConfigurerAdapter() {
 
-    @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
                 .authorizeRequests().mvcMatchers("/actuator/**").permitAll().and()
@@ -16,3 +16,4 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     }
 
 }
+*/

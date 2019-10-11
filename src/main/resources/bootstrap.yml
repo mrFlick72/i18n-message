@@ -1,6 +1,6 @@
 spring:
   application:
-    name: i18n-messages
+      name: i18n-messages
   cloud:
     config:
       discovery:
