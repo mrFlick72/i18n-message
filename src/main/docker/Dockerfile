@@ -1,4 +1,4 @@
-FROM openjdk:12
+FROM openjdk:11
 
 ADD i18n-messages.jar /usr/local/i18n-messages/
 
