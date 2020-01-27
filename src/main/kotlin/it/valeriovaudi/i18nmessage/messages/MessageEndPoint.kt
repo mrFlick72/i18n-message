@@ -1,17 +1,22 @@
 package it.valeriovaudi.i18nmessage.messages
 
-import org.springframework.http.ResponseEntity.ok
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.server.router
 import java.util.*
 
-@RestController
+@Configuration
 class MessageEndPoint(private val messageRepository: MessageRepository) {
 
-    @GetMapping("/messages/{application}")
-    fun findAllMessages(@PathVariable("application") application: String,
-                        @RequestParam("lang", required = false, defaultValue = "en") locale: Locale) =
-    ok(messageRepository.find(application, locale))
+    @Bean
+    fun messageEndPointRoute() =
+            router {
+                GET("/messages/{application}") {
+                    messageRepository.find(
+                            it.pathVariable("application"),
+                            it.queryParam("lang").map { Locale(it) }.orElse(Locale.ENGLISH)
+                    ).flatMap { messages -> ok().body(BodyInserters.fromValue(messages)) }
+                }
+            }
 }
