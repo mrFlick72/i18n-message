@@ -13,7 +13,6 @@ typealias  S3ObjectSummaryPredicate = (S3ObjectSummary) -> Boolean
 open class AwsS3MessageRepository(private val s3client: AmazonS3,
                                   private val bucketName: String) : MessageRepository {
 
-    //    @Cacheable("i18nMessageBundle", key = "#application + '_' + #language.toString()")
     override fun find(application: String, language: Locale): Mono<Messages> =
             getAllS3MessagesBundleFor(application)
                     .flatMap { s3MessageBundleFor(it, application, language.toString()) }
