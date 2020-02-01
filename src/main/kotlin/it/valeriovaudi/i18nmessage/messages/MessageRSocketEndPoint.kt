@@ -8,7 +8,7 @@ import java.util.*
 @Controller
 class MessageRSocketEndPoint(private val messageRepository: MessageRepository) {
 
-    @MessageMapping("/messages/{application}")
+    @MessageMapping("messages.{application}")
     fun messageEndPointRoute(
             @DestinationVariable("application") application: String,
             lang: String?
