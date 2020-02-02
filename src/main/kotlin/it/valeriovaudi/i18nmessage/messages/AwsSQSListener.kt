@@ -6,6 +6,8 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.util.*
+import java.util.regex.Pattern
+import kotlin.collections.LinkedHashMap
 
 @Component
 class AwsSQSListener(private val messageRepository: MessageRepository,
@@ -13,17 +15,20 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
 
     @JmsListener(destination = "i18n-messages-updates")
     fun onMessage(message: String) {
-        val s3key = JsonPath.read(message, "$.detail.requestParameters") as String
-        val applicationName = s3key.split("//").first()
-        messageRepository.find(applicationName, Locale.ENGLISH)
-                .flatMap { bundle ->
-                    requester.flatMap { req ->
-                        req.route("messages.$applicationName")
-                                .data(bundle)
-                                .send()
-                    }
-                }.subscribe()
-
-        println(message)
+        Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
+                .map {
+                    val applicationName = it.split("/").first()
+                    messageRepository.find(applicationName, Locale.ENGLISH)
+                            .flatMap { bundle ->
+                                Optional.ofNullable(bundle)
+                                        .map {
+                                            requester.flatMap { req ->
+                                                req.route("messages.$applicationName")
+                                                        .data(bundle)
+                                                        .send()
+                                            }
+                                        }.orElse(Mono.empty())
+                            }.subscribe()
+                }
     }
 }
