@@ -18,6 +18,7 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
         Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
                 .map {
                     val applicationName = it.split("/").first()
+                    println("application $applicationName bundle are refreshing")
                     messageRepository.find(applicationName, Locale.ENGLISH)
                             .flatMap { bundle ->
                                 Optional.ofNullable(bundle)
