@@ -6,30 +6,39 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.util.*
-import java.util.regex.Pattern
-import kotlin.collections.LinkedHashMap
 
 @Component
 class AwsSQSListener(private val messageRepository: MessageRepository,
-                     private val requester: Mono<RSocketRequester>) {
+                     private val requesters: Map<String, Mono<RSocketRequester>>) {
 
     @JmsListener(destination = "i18n-messages-updates")
     fun onMessage(message: String) {
-        Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
-                .map {
-                    val applicationName = it.split("/").first()
+        applicationNameFor2(message)
+                .map { applicationName ->
+
                     println("application $applicationName bundle are refreshing")
+
                     messageRepository.find(applicationName, Locale.ENGLISH)
                             .flatMap { bundle ->
-                                Optional.ofNullable(bundle)
-                                        .map {
-                                            requester.flatMap { req ->
-                                                req.route("messages.$applicationName")
-                                                        .data(bundle)
-                                                        .send()
-                                            }
-                                        }.orElse(Mono.empty())
+                                sendBundleToClient(bundle, applicationName)
                             }.subscribe()
                 }
+    }
+
+    private fun applicationNameFor2(message: String) =
+            Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
+                    .map { key -> key.split("/").first() }
+
+
+    private fun sendBundleToClient(bundle: Messages, applicationName: String): Mono<Void>? {
+        return Optional.ofNullable(bundle)
+                .map { requesters[applicationName] }
+                .map { applicationRequester ->
+                    applicationRequester?.flatMap { req ->
+                        req.route("messages.$applicationName")
+                                .data(bundle)
+                                .send()
+                    }
+                }.orElse(Mono.empty())
     }
 }

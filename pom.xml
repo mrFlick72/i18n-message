@@ -23,6 +23,13 @@
     </properties>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/io.arrow-kt/arrow-core -->
+        <dependency>
+            <groupId>io.arrow-kt</groupId>
+            <artifactId>arrow-core</artifactId>
+            <version>0.10.4</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
         <dependency>
             <groupId>com.amazonaws</groupId>

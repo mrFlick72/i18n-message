@@ -12,6 +12,9 @@ import it.valeriovaudi.i18nmessage.messages.AwsS3MessageRepository
 import it.valeriovaudi.i18nmessage.messages.MessageRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.jms.annotation.EnableJms
@@ -27,6 +30,7 @@ import javax.jms.Session
 
 @EnableJms
 @SpringBootApplication
+@EnableConfigurationProperties(value = [RSocketApplicationClientApps::class])
 class I18nMessageApplication {
 
     @Bean
@@ -54,16 +58,16 @@ class I18nMessageApplication {
     }
 
     @Bean
-    fun requester(rSocketStrategies: RSocketStrategies,
-           @Value("\${i18n-messages.rsocket.host}") i18nHost: String,
-           @Value("\${i18n-messages.rsocket.port}") i18nPort: Int,
-           builder: RSocketRequester.Builder) : Mono<RSocketRequester> {
-        val address = InetSocketAddress(i18nHost, i18nPort)
-        val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
-        return  builder.rsocketStrategies(rSocketStrategies)
-                .connect(clientTransport)
+    fun requesters(rSocketStrategies: RSocketStrategies,
+                  rSocketApplicationClientApps: RSocketApplicationClientApps,
+                  builder: RSocketRequester.Builder): Map<String, Mono<RSocketRequester>> =
 
-    }
+            rSocketApplicationClientApps.clients.map {
+                val address = InetSocketAddress(it.host, it.port)
+                val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
+                mapOf(it.id to builder.rsocketStrategies(rSocketStrategies)
+                        .connect(clientTransport))
+            }.reduce { acc, map -> acc + map }
 
     @Bean
     fun messageRepository(@Value("\${aws.s3.region}") awsRegion: String,
@@ -85,6 +89,12 @@ class I18nMessageApplication {
             AWSCredentialsProvider = AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, awsSecretKey))
 
 }
+
+@ConstructorBinding
+@ConfigurationProperties(prefix = "rsocket")
+data class RSocketApplicationClientApps(val clients: List<RSocketApplicationClientApp>)
+
+data class RSocketApplicationClientApp(val id: String, val host: String, val port: Int)
 
 fun main(args: Array<String>) {
     runApplication<I18nMessageApplication>(*args)
