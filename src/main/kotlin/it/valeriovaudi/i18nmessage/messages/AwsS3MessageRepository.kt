@@ -20,11 +20,9 @@ open class AwsS3MessageRepository(private val s3client: AmazonS3,
 
     private fun s3MessageBundleFor(message: ObjectListing, application: String, language: String) =
             Mono.defer {
-                messageKeyFor(application)
-                        .let { messagesKey ->
-                            Optional.ofNullable(message.objectSummaries.find(resourceBundleFinderPredicate(messagesKey, language)))
-                                    .orElse(message.objectSummaries.find(defaultResourceBundleFinderPredicate(messagesKey)))
-                        }.toMono()
+                Optional.ofNullable(message.objectSummaries.find(resourceBundleFinderPredicate(application, language)))
+                        .orElse(message.objectSummaries.find(defaultResourceBundleFinderPredicate(application)))
+                        .toMono()
             }
 
     private fun defaultResourceBundleFinderPredicate(messagesKey: String): S3ObjectSummaryPredicate =
@@ -45,8 +43,6 @@ open class AwsS3MessageRepository(private val s3client: AmazonS3,
                     .map { it.toMap() as Map<String, String> }
 
 
-    private fun messageKeyFor(application: String) = "i18n-messages/$application"
-
-    private fun getAllS3MessagesBundleFor(application: String) = Mono.fromCallable { s3client.listObjects(bucketName, messageKeyFor(application)) }
+    private fun getAllS3MessagesBundleFor(application: String) = Mono.fromCallable { s3client.listObjects(bucketName, "$application") }
 
 }
