@@ -13,7 +13,7 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
 
     @JmsListener(destination = "i18n-messages-updates")
     fun onMessage(message: String) {
-        applicationNameFor2(message)
+        applicationNameFor(message)
                 .map { applicationName ->
 
                     println("application $applicationName bundle are refreshing")
@@ -25,7 +25,7 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
                 }
     }
 
-    private fun applicationNameFor2(message: String) =
+    private fun applicationNameFor(message: String) =
             Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
                     .map { key -> key.split("/").first() }
 
