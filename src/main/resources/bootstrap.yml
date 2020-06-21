@@ -1,16 +1,3 @@
 spring:
   application:
       name: i18n-messages
-  cloud:
-    config:
-      discovery:
-        enabled: true
-      fail-fast: true
-    kubernetes:
-      reload:
-        enabled: true
-        mode: polling
-        period: 5000
-      config:
-        sources:
-          - name: ${spring.application.name}
