@@ -2,13 +2,9 @@ package it.valeriovaudi.i18nmessage
 
 import com.amazon.sqs.javamessaging.ProviderConfiguration
 import com.amazon.sqs.javamessaging.SQSConnectionFactory
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
-import io.rsocket.transport.netty.client.TcpClientTransport
-import it.valeriovaudi.i18nmessage.messages.AwsS3MessageRepository
 import it.valeriovaudi.i18nmessage.messages.MessageRepository
 import it.valeriovaudi.i18nmessage.messages.RestMessageRepository
 import org.springframework.beans.factory.annotation.Value
@@ -25,7 +21,6 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.RSocketStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
-import java.net.InetSocketAddress
 import javax.jms.ConnectionFactory
 import javax.jms.Session
 

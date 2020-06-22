@@ -24,13 +24,18 @@ class RestMessageRepository(
         private val client: WebClient.Builder) : MessageRepository {
 
     override fun find(application: String, language: Locale): Mono<Messages> =
-            client.baseUrl(baseUrlFor(application))
-                    .build()
-                    .get()
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .flatMap { it.bodyToMono(ByteArray::class.java) }
-                    .flatMap { loadBundle(it) }
+            findFor { baseUrlFor(application, language.toString()) }
+                    .switchIfEmpty(findFor { baseUrlFor(application) })
+
+    private fun findFor(baseURL: () -> String): Mono<Messages> {
+        return client.baseUrl(baseURL())
+                .build()
+                .get()
+                .accept(MediaType.APPLICATION_OCTET_STREAM)
+                .exchange()
+                .flatMap { it.bodyToMono(ByteArray::class.java) }
+                .flatMap { loadBundle(it) }
+    }
 
 
     private fun loadBundle(data: ByteArray): Mono<Map<String, String>> =
@@ -43,43 +48,7 @@ class RestMessageRepository(
 
     private fun baseUrlFor(application: String) =
             "$repositoryServiceUrl/documents/$registrationName?path=$application&fileName=messages&fileExt=properties"
-}
 
-typealias  S3ObjectSummaryPredicate = (S3ObjectSummary) -> Boolean
-
-open class AwsS3MessageRepository(private val s3client: AmazonS3,
-                                  private val bucketName: String) : MessageRepository {
-
-    override fun find(application: String, language: Locale): Mono<Messages> =
-            getAllS3MessagesBundleFor(application)
-                    .flatMap { s3MessageBundleFor(it, application, language.toString()) }
-                    .flatMap { s3MessageBundleContentFor(it) }
-
-    private fun s3MessageBundleFor(message: ObjectListing, application: String, language: String) =
-            Mono.defer {
-                Optional.ofNullable(message.objectSummaries.find(resourceBundleFinderPredicate(application, language)))
-                        .orElse(message.objectSummaries.find(defaultResourceBundleFinderPredicate(application)))
-                        .toMono()
-            }
-
-    private fun defaultResourceBundleFinderPredicate(messagesKey: String): S3ObjectSummaryPredicate =
-            { it.key == "$messagesKey/messages.properties" }
-
-    private fun resourceBundleFinderPredicate(messagesKey: String, language: String): S3ObjectSummaryPredicate =
-            { it.key == "$messagesKey/messages_$language.properties" }
-
-    private fun s3MessageBundleContentFor(message: S3ObjectSummary) =
-            Mono.fromCallable {
-                s3client.getObject(bucketName, message.key)
-                        .objectContent.buffered()
-            }.flatMap { loadBundle(it) }
-
-    private fun loadBundle(data: BufferedInputStream): Mono<Map<String, String>> =
-            Mono.defer { Properties().toMono() }
-                    .map { it.load(data); it }
-                    .map { it.toMap() as Map<String, String> }
-
-
-    private fun getAllS3MessagesBundleFor(application: String) = Mono.fromCallable { s3client.listObjects(bucketName, "$application") }
-
+    private fun baseUrlFor(application: String, lang: String) =
+            "$repositoryServiceUrl/documents/$registrationName?path=$application&fileName=messages_lang&fileExt=properties"
 }
