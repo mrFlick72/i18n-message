@@ -26,7 +26,7 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
     }
 
     private fun applicationNameFor(message: String) =
-            Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
+            Optional.ofNullable(JsonPath.read(message, "$.application.value") as String?)
                     .map { key -> key.split("/").first() }
 
 
