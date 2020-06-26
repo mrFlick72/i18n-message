@@ -19,7 +19,7 @@
         <jaxb.version>2.3.0</jaxb.version>
         <java.version>1.8</java.version>
         <kotlin.version>1.3.72</kotlin.version>
-        <spring-cloud.version>Hoxton.SR5</spring-cloud.version>
+        <spring-cloud.version>Hoxton.SR6</spring-cloud.version>
     </properties>
 
     <dependencies>
@@ -116,7 +116,6 @@
     </dependencyManagement>
 
 
-
     <profiles>
         <profile>
             <id>netflix</id>
@@ -164,16 +163,12 @@
 
             <dependencies>
                 <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-config</artifactId>
+                </dependency>
+                <dependency>
                     <groupId>io.micrometer</groupId>
                     <artifactId>micrometer-registry-graphite</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-kubernetes-core</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
                 </dependency>
             </dependencies>
         </profile>
