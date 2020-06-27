@@ -5,6 +5,7 @@ import com.amazon.sqs.javamessaging.SQSConnectionFactory
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
+import io.rsocket.transport.netty.client.TcpClientTransport
 import it.valeriovaudi.i18nmessage.messages.MessageRepository
 import it.valeriovaudi.i18nmessage.messages.RestMessageRepository
 import org.springframework.beans.factory.annotation.Value
@@ -21,6 +22,7 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.RSocketStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import java.net.InetSocketAddress
 import javax.jms.ConnectionFactory
 import javax.jms.Session
 
@@ -66,14 +68,15 @@ class I18nMessageApplication {
     fun requesters(rSocketStrategies: RSocketStrategies,
                    rSocketApplicationClientApps: RSocketApplicationClientApps,
                    builder: RSocketRequester.Builder): Map<String, Mono<RSocketRequester>> =
-            emptyMap()
-    /*         rSocketApplicationClientApps.clients
-                     .map {
-                         val address = InetSocketAddress(it.host, it.port)
-                         val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
-                         mapOf(it.id to builder.rsocketStrategies(rSocketStrategies)
-                                 .connect(clientTransport))
-                     }.reduce { acc, map -> acc + map }*/
+            rSocketApplicationClientApps.clients
+                    .stream()
+                    .map {
+                        val address = InetSocketAddress(it.host, it.port)
+                        val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
+                        mapOf(it.id to builder.rsocketStrategies(rSocketStrategies)
+                                .connect(clientTransport))
+                    }.reduce { acc, map -> acc + map }
+                    .orElse(emptyMap())
 
     @Bean
     fun messageRepository(@Value("\${repository-service.baseUrl}") repositoryServiceUrl: String,
