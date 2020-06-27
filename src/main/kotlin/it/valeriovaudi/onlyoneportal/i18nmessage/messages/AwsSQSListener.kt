@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage.messages
+package it.valeriovaudi.onlyoneportal.i18nmessage.messages
 
 import com.jayway.jsonpath.JsonPath
 import org.springframework.jms.annotation.JmsListener

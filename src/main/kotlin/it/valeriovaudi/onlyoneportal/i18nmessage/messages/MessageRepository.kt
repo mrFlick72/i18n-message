@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage.messages
+package it.valeriovaudi.onlyoneportal.i18nmessage.messages
 
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono

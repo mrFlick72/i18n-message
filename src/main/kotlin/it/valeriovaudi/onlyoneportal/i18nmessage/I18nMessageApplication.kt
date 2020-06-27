@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage
+package it.valeriovaudi.onlyoneportal.i18nmessage
 
 import com.amazon.sqs.javamessaging.ProviderConfiguration
 import com.amazon.sqs.javamessaging.SQSConnectionFactory
@@ -6,8 +6,8 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import io.rsocket.transport.netty.client.TcpClientTransport
-import it.valeriovaudi.i18nmessage.messages.MessageRepository
-import it.valeriovaudi.i18nmessage.messages.RestMessageRepository
+import it.valeriovaudi.onlyoneportal.i18nmessage.messages.MessageRepository
+import it.valeriovaudi.onlyoneportal.i18nmessage.messages.RestMessageRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationProperties
