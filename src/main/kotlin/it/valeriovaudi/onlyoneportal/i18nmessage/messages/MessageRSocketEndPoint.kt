@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage.messages
+package it.valeriovaudi.onlyoneportal.i18nmessage.messages
 
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping

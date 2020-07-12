@@ -1,15 +1,13 @@
-package it.valeriovaudi.i18nmessage
+package it.valeriovaudi.onlyoneportal.i18nmessage
 
 import com.amazon.sqs.javamessaging.ProviderConfiguration
 import com.amazon.sqs.javamessaging.SQSConnectionFactory
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import io.rsocket.transport.netty.client.TcpClientTransport
-import it.valeriovaudi.i18nmessage.messages.AwsS3MessageRepository
-import it.valeriovaudi.i18nmessage.messages.MessageRepository
+import it.valeriovaudi.onlyoneportal.i18nmessage.messages.MessageRepository
+import it.valeriovaudi.onlyoneportal.i18nmessage.messages.RestMessageRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -22,6 +20,7 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory
 import org.springframework.jms.support.destination.DynamicDestinationResolver
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.RSocketStrategies
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import java.net.InetSocketAddress
 import javax.jms.ConnectionFactory
@@ -34,13 +33,21 @@ import javax.jms.Session
 class I18nMessageApplication {
 
     @Bean
-    fun sqsConnectionFactory(@Value("\${aws.s3.region}") awsRegion: String,
-                             awsCredentialsProvider: AWSCredentialsProvider): SQSConnectionFactory {
+    fun sqsConnectionFactory(@Value("\${aws.access-key}") accessKey: String,
+                             @Value("\${aws.secret-key}") awsSecretKey: String,
+                             @Value("\${aws.region}") awsRegion: String): SQSConnectionFactory {
         return SQSConnectionFactory(
                 ProviderConfiguration(),
                 AmazonSQSClientBuilder
                         .standard()
-                        .withCredentials(awsCredentialsProvider)
+                        .withCredentials(
+                                AWSStaticCredentialsProvider(
+                                        BasicAWSCredentials(
+                                                accessKey,
+                                                awsSecretKey
+                                        )
+                                )
+                        )
                         .withRegion(awsRegion)
                         .build()
         )
@@ -59,40 +66,30 @@ class I18nMessageApplication {
 
     @Bean
     fun requesters(rSocketStrategies: RSocketStrategies,
-                  rSocketApplicationClientApps: RSocketApplicationClientApps,
-                  builder: RSocketRequester.Builder): Map<String, Mono<RSocketRequester>> =
-
-            rSocketApplicationClientApps.clients.map {
-                val address = InetSocketAddress(it.host, it.port)
-                val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
-                mapOf(it.id to builder.rsocketStrategies(rSocketStrategies)
-                        .connect(clientTransport))
-            }.reduce { acc, map -> acc + map }
+                   rSocketApplicationClientApps: RSocketApplicationClientApps,
+                   builder: RSocketRequester.Builder): Map<String, Mono<RSocketRequester>> =
+            rSocketApplicationClientApps.clients
+                    .stream()
+                    .map {
+                        val address = InetSocketAddress(it.host, it.port)
+                        val clientTransport: TcpClientTransport = TcpClientTransport.create(address)
+                        mapOf(it.id to builder.rsocketStrategies(rSocketStrategies)
+                                .connect(clientTransport))
+                    }.reduce { acc, map -> acc + map }
+                    .orElse(emptyMap())
 
     @Bean
-    fun messageRepository(@Value("\${aws.s3.region}") awsRegion: String,
-                          @Value("\${aws.s3.bucket}") awsBucket: String,
-                          awsCredentialsProvider: AWSCredentialsProvider): MessageRepository {
+    fun messageRepository(@Value("\${repository-service.baseUrl}") repositoryServiceUrl: String,
+                          @Value("\${repository-service.serviceRegistrationName}") registrationName: String): MessageRepository {
 
-        val s3client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(awsCredentialsProvider)
-                .withRegion(awsRegion)
-                .build()
-
-        return AwsS3MessageRepository(s3client, awsBucket)
+        return RestMessageRepository(repositoryServiceUrl, registrationName, WebClient.builder());
     }
-
-    @Bean
-    fun awsCredentialsProvider(@Value("\${aws.s3.access-key}") accessKey: String,
-                               @Value("\${aws.s3.secret-key}") awsSecretKey: String):
-            AWSCredentialsProvider = AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, awsSecretKey))
 
 }
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "rsocket")
-data class RSocketApplicationClientApps(val clients: List<RSocketApplicationClientApp>)
+data class RSocketApplicationClientApps(val clients: List<RSocketApplicationClientApp> = emptyList())
 
 data class RSocketApplicationClientApp(val id: String, val host: String, val port: Int)
 
