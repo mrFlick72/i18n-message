@@ -1,6 +1,8 @@
 package it.valeriovaudi.i18nmessage.messages
 
 import com.jayway.jsonpath.JsonPath
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.stereotype.Component
@@ -11,12 +13,13 @@ import java.util.*
 class AwsSQSListener(private val messageRepository: MessageRepository,
                      private val requesters: Map<String, Mono<RSocketRequester>>) {
 
+    val logger: Logger = LoggerFactory.getLogger(AwsSQSListener::class.java)
+
     @JmsListener(destination = "i18n-messages-updates")
     fun onMessage(message: String) {
         applicationNameFor(message)
                 .map { applicationName ->
-
-                    println("application $applicationName bundle are refreshing")
+                    logger.info("application $applicationName bundle are refreshing")
 
                     messageRepository.find(applicationName, Locale.ENGLISH)
                             .flatMap { bundle ->
