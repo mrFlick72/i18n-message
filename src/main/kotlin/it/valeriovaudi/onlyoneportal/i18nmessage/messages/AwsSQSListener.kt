@@ -1,4 +1,4 @@
-package it.valeriovaudi.i18nmessage.messages
+package it.valeriovaudi.onlyoneportal.i18nmessage.messages
 
 import com.jayway.jsonpath.JsonPath
 import org.springframework.jms.annotation.JmsListener
@@ -26,7 +26,7 @@ class AwsSQSListener(private val messageRepository: MessageRepository,
     }
 
     private fun applicationNameFor(message: String) =
-            Optional.ofNullable(JsonPath.read(message, "$.detail.requestParameters.key") as String?)
+            Optional.ofNullable(JsonPath.read(message, "$.application.value") as String?)
                     .map { key -> key.split("/").first() }
 
 
