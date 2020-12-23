@@ -1,7 +1,8 @@
 package web
 
 type WebResponse struct {
-	Body string
+	Body   string
+	Status int
 }
 
 type Uri = string

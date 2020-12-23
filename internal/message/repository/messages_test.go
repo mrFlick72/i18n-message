@@ -14,6 +14,7 @@ func TestRestMessageRepository_Find(t *testing.T) {
 		registrationUrl: "i18n-messages",
 		application:     "AN_APPLICATION",
 		language:        &lang,
+		status:          200,
 	}
 	repository := RestMessageRepository{
 		client:               client,
@@ -32,6 +33,7 @@ func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 		baseUrl:         "http://localhost/repository-service",
 		registrationUrl: "i18n-messages",
 		application:     "AN_APPLICATION",
+		status:          200,
 	}
 	repository := RestMessageRepository{
 		client:               client,
@@ -52,6 +54,7 @@ type TestableWebClient struct {
 	registrationUrl string
 	application     string
 	language        *string
+	status          int
 }
 
 func (receiver *TestableWebClient) Get(request web.WebRequest) (web.WebResponse, error) {
@@ -67,7 +70,8 @@ func (receiver *TestableWebClient) Get(request web.WebRequest) (web.WebResponse,
 
 	if request.Url == expectedUrl {
 		return web.WebResponse{
-			Body: "{\"key1\":\"prop1\"}",
+			Body:   "{\"key1\":\"prop1\"}",
+			Status: receiver.status,
 		}, nil
 
 	}
