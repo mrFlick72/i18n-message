@@ -24,6 +24,10 @@ func (repository *RestMessageRepository) Find(application string, language *Lang
 	serviceUrl := repositoryUrlFor(application, language, repository)
 
 	webResponse, _ := client.Get(web.WebRequest{Url: serviceUrl})
+	if webResponse.Status == 404 {
+		serviceUrl := repositoryUrlFor(application, nil, repository)
+		webResponse, _ = client.Get(web.WebRequest{Url: serviceUrl})
+	}
 	content := webResponse.Body
 
 	err := json.Unmarshal([]byte(content), &result)
