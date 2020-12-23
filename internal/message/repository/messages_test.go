@@ -29,9 +29,9 @@ func TestRestMessageRepository_Find(t *testing.T) {
 	})
 
 	repository := RestMessageRepository{
-		client:               client,
-		repositoryServiceUrl: "http://localhost/repository-service",
-		registrationName:     "i18n-messages",
+		Client:               client,
+		RepositoryServiceUrl: "http://localhost/repository-service",
+		RegistrationName:     "i18n-messages",
 	}
 
 	actual, _ := repository.Find("AN_APPLICATION", lang)
@@ -49,9 +49,9 @@ func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 	})
 
 	repository := RestMessageRepository{
-		client:               client,
-		repositoryServiceUrl: "http://localhost/repository-service",
-		registrationName:     "i18n-messages",
+		Client:               client,
+		RepositoryServiceUrl: "http://localhost/repository-service",
+		RegistrationName:     "i18n-messages",
 	}
 
 	actual, _ := repository.Find("AN_APPLICATION", "")
@@ -62,9 +62,9 @@ func TestRestMessageRepository_Find_Wit_Fallback(t *testing.T) {
 	client := new(MockedWebClientObject)
 
 	repository := RestMessageRepository{
-		client:               client,
-		repositoryServiceUrl: baseUrl,
-		registrationName:     registrationName,
+		Client:               client,
+		RepositoryServiceUrl: baseUrl,
+		RegistrationName:     registrationName,
 	}
 
 	client.On("Get", &web.WebRequest{

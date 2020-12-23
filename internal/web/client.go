@@ -1,5 +1,7 @@
 package web
 
+import "github.com/go-resty/resty/v2"
+
 type WebResponse struct {
 	Body   string
 	Status int
@@ -16,8 +18,20 @@ type WebClient interface {
 }
 
 type RestWebClient struct {
+	client *resty.Client
 }
 
 func (r *RestWebClient) Get(request *WebRequest) (*WebResponse, error) {
-	panic("implement me")
+	response, _ := r.client.R().Get(request.Url)
+
+	return &WebResponse{
+		Body:   string(response.Body()),
+		Status: response.StatusCode(),
+	}, nil
+}
+
+func New() WebClient {
+	return &RestWebClient{
+		client: resty.New(),
+	}
 }
