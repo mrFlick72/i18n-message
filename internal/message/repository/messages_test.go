@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github/mrflick72/i18n-message/internal/web"
 	"testing"
 )
 
@@ -33,8 +34,20 @@ func assertThatNoErrorFor(t *testing.T, err error, errorMessage string) {
 }
 
 type TestableWebClient struct {
+	baseUrl         string
+	registrationUrl string
+	application     string
 }
 
-func (receiver *TestableWebClient) Get() {
+func (receiver *TestableWebClient) Get(request web.WebRequest) (web.WebResponse, error) {
+	expectedUrl := fmt.Sprintf("%s/documents/%s?path=%s&fileName=messages_it&fileExt=properties",
+		receiver.baseUrl, receiver.registrationUrl, receiver.application)
 
+	if request.Url == expectedUrl {
+		return web.WebResponse{
+			Body: "{'key1':'prop1'}",
+		}, nil
+
+	}
+	return web.WebResponse{}, nil
 }
