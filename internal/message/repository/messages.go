@@ -18,14 +18,14 @@ type RestMessageRepository struct {
 	registrationName     string
 }
 
-func (repository *RestMessageRepository) Find(application string, language *Language) (*map[string]string, error) {
+func (repository *RestMessageRepository) Find(application string, language Language) (*map[string]string, error) {
 	client := repository.client
 	result := make(map[string]string)
 	serviceUrl := repositoryUrlFor(application, language, repository)
 
 	webResponse, _ := client.Get(web.WebRequest{Url: serviceUrl})
 	if webResponse.Status == 404 {
-		serviceUrl := repositoryUrlFor(application, nil, repository)
+		serviceUrl := repositoryUrlFor(application, "", repository)
 		webResponse, _ = client.Get(web.WebRequest{Url: serviceUrl})
 	}
 	content := webResponse.Body
@@ -37,10 +37,10 @@ func (repository *RestMessageRepository) Find(application string, language *Lang
 	return &result, nil
 }
 
-func repositoryUrlFor(application string, language *Language, repository *RestMessageRepository) string {
-	if language != nil {
+func repositoryUrlFor(application string, language Language, repository *RestMessageRepository) string {
+	if language != "" {
 		return fmt.Sprintf("%s/documents/%s?path=%s&fileName=messages_%v&fileExt=properties",
-			repository.repositoryServiceUrl, repository.registrationName, application, *language)
+			repository.repositoryServiceUrl, repository.registrationName, application, language)
 	} else {
 		return fmt.Sprintf("%s/documents/%s?path=%s&fileName=messages&fileExt=properties",
 			repository.repositoryServiceUrl, repository.registrationName, application)
