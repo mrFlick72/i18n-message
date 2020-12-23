@@ -12,12 +12,12 @@ type WebRequest struct {
 }
 
 type WebClient interface {
-	Get(request WebRequest) (WebResponse, error)
+	Get(request *WebRequest) (*WebResponse, error)
 }
 
 type RestWebClient struct {
 }
 
-func (r *RestWebClient) Get(request WebRequest) (WebResponse, error) {
+func (r *RestWebClient) Get(request *WebRequest) (*WebResponse, error) {
 	panic("implement me")
 }

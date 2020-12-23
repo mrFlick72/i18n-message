@@ -31,10 +31,10 @@ func (repository *RestMessageRepository) Find(application string, language Langu
 }
 
 func (repository *RestMessageRepository) contentFor(application string, repositoryServiceUrl string) string {
-	webResponse, _ := repository.client.Get(web.WebRequest{Url: repositoryServiceUrl})
+	webResponse, _ := repository.client.Get(&web.WebRequest{Url: repositoryServiceUrl})
 	if webResponse.Status == 404 {
 		repositoryServiceUrl := repository.repositoryUrlFor(application, "")
-		webResponse, _ = repository.client.Get(web.WebRequest{Url: repositoryServiceUrl})
+		webResponse, _ = repository.client.Get(&web.WebRequest{Url: repositoryServiceUrl})
 	}
 	content := webResponse.Body
 	return content

@@ -21,9 +21,9 @@ func TestRestMessageRepository_Find(t *testing.T) {
 	lang := "it"
 	client := new(MockedWebClientObject)
 
-	client.On("Get", web.WebRequest{
+	client.On("Get", &web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, lang),
-	}).Return(web.WebResponse{
+	}).Return(&web.WebResponse{
 		Body:   body,
 		Status: 200,
 	})
@@ -41,9 +41,9 @@ func TestRestMessageRepository_Find(t *testing.T) {
 func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 	client := new(MockedWebClientObject)
 
-	client.On("Get", web.WebRequest{
+	client.On("Get", &web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, ""),
-	}).Return(web.WebResponse{
+	}).Return(&web.WebResponse{
 		Body:   body,
 		Status: 200,
 	})
@@ -67,15 +67,15 @@ func TestRestMessageRepository_Find_Wit_Fallback(t *testing.T) {
 		registrationName:     registrationName,
 	}
 
-	client.On("Get", web.WebRequest{
+	client.On("Get", &web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, language),
-	}).Return(web.WebResponse{
+	}).Return(&web.WebResponse{
 		Status: 404,
 	})
 
-	client.On("Get", web.WebRequest{
+	client.On("Get", &web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, ""),
-	}).Return(web.WebResponse{
+	}).Return(&web.WebResponse{
 		Body:   body,
 		Status: 200,
 	})
@@ -88,9 +88,9 @@ type MockedWebClientObject struct {
 	mock.Mock
 }
 
-func (mock *MockedWebClientObject) Get(request web.WebRequest) (web.WebResponse, error) {
+func (mock *MockedWebClientObject) Get(request *web.WebRequest) (*web.WebResponse, error) {
 	called := mock.Called(request)
-	return called.Get(0).(web.WebResponse), nil
+	return called.Get(0).(*web.WebResponse), nil
 }
 
 func serviceUrlFor(baseUrl string, registrationUrl string, application string, language Language) string {
