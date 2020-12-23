@@ -13,6 +13,8 @@ var (
 	registrationName = "i18n-messages"
 	application      = "AN_APPLICATION"
 	language         = "it"
+	expected         = map[string]string{"key1": "prop1", "key2": "prop2"}
+	body             = "key1=prop1\nkey2=prop2"
 )
 
 func TestRestMessageRepository_Find(t *testing.T) {
@@ -22,7 +24,7 @@ func TestRestMessageRepository_Find(t *testing.T) {
 	client.On("Get", web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, lang),
 	}).Return(web.WebResponse{
-		Body:   "{\"key1\":\"prop1\"}",
+		Body:   body,
 		Status: 200,
 	})
 
@@ -33,8 +35,6 @@ func TestRestMessageRepository_Find(t *testing.T) {
 	}
 
 	actual, _ := repository.Find("AN_APPLICATION", lang)
-	expected := map[string]string{"key1": "prop1"}
-
 	assert.EqualValues(t, *actual, expected)
 }
 
@@ -44,7 +44,7 @@ func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 	client.On("Get", web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, ""),
 	}).Return(web.WebResponse{
-		Body:   "{\"key1\":\"prop1\"}",
+		Body:   body,
 		Status: 200,
 	})
 
@@ -55,8 +55,6 @@ func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 	}
 
 	actual, _ := repository.Find("AN_APPLICATION", "")
-	expected := map[string]string{"key1": "prop1"}
-
 	assert.EqualValues(t, *actual, expected)
 }
 
@@ -78,13 +76,11 @@ func TestRestMessageRepository_Find_Wit_Fallback(t *testing.T) {
 	client.On("Get", web.WebRequest{
 		Url: serviceUrlFor(baseUrl, registrationName, application, ""),
 	}).Return(web.WebResponse{
-		Body:   "{\"key1\":\"prop1\"}",
+		Body:   body,
 		Status: 200,
 	})
 
 	actual, _ := repository.Find(application, language)
-	expected := map[string]string{"key1": "prop1"}
-
 	assert.EqualValues(t, *actual, expected)
 }
 
