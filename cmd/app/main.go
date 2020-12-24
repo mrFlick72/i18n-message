@@ -8,28 +8,36 @@ import (
 	"github/mrflick72/i18n-message/internal/heath"
 	"github/mrflick72/i18n-message/internal/message/repository"
 	"github/mrflick72/i18n-message/internal/web"
+	"sync"
 )
 
 func main() {
 	// Creates an iris application without any middleware by default
-	go actuatorServer()
-	applicationServer()
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	go applicationServer(wg)
+	go actuatorServer(wg)
+
+	wg.Wait()
 }
 
-func actuatorServer() {
+func actuatorServer(wg *sync.WaitGroup) {
 	app := newWebServer()
 	endpoints := heath.HealthEndpoint{}
 	endpoints.ResgisterEndpoints(app)
 	app.Listen(":8081")
+	wg.Done()
 }
 
-func applicationServer() {
+func applicationServer(wg *sync.WaitGroup) {
 	app := newWebServer()
 	messageRepository := configureMessageRepository()
 	configureMessageEndpoints(messageRepository, app)
 
 	// Listen and serve on 0.0.0.0:8080
 	app.Listen(":8080")
+	wg.Done()
 }
 
 func configureMessageRepository() repository.RestMessageRepository {
