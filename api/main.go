@@ -9,7 +9,11 @@ type MessageEndpoints struct {
 	Repository repository.MessageRepository
 }
 
-func (endpoint *MessageEndpoints) GetMessagesEndpoint(ctx iris.Context) {
+func (endpoint *MessageEndpoints) ResgisterEndpoint(application *iris.Application) {
+	application.Get("/messages/{application}", endpoint.getMessagesEndpoint)
+}
+
+func (endpoint *MessageEndpoints) getMessagesEndpoint(ctx iris.Context) {
 	application := ctx.Params().Get("application")
 	lang := urlParam(ctx, "lang", "")
 	find, _ := endpoint.Repository.Find(application, lang)

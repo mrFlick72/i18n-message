@@ -3,6 +3,7 @@ package repository
 import (
 	"bufio"
 	"fmt"
+	"github/mrflick72/i18n-message/internal/strings/utils"
 	"github/mrflick72/i18n-message/internal/web"
 	"strings"
 )
@@ -51,7 +52,7 @@ func (repository *RestMessageRepository) loadFrom(content string, result Message
 	for scanner.Scan() {
 		split := strings.Split(scanner.Text(), "=")
 		if len(split) == 2 {
-			result[split[0]] = split[1]
+			result[utils.TrimStace(split[0])] = utils.TrimStace(split[1])
 		}
 	}
 }
