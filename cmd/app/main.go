@@ -6,9 +6,13 @@ import (
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github/mrflick72/i18n-message/api"
 	"github/mrflick72/i18n-message/internal/heath"
+	listener "github/mrflick72/i18n-message/internal/message/listener"
 	"github/mrflick72/i18n-message/internal/message/repository"
 	"github/mrflick72/i18n-message/internal/web"
+	"os"
+	"strconv"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -16,10 +20,24 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
+	go listenForUpdates(wg)
 	go applicationServer(wg)
 	go actuatorServer(wg)
 
 	wg.Wait()
+}
+
+func listenForUpdates(wg *sync.WaitGroup) {
+	timeout, _ := strconv.ParseInt(os.Getenv("SQS_TIMEOUT"), 10, 64)
+	maxNumberOfMessages, _ := strconv.ParseInt(os.Getenv("SQS_MAX_NUMBER_OF_MESSAGES"), 10, 64)
+	sleep, _ := time.ParseDuration(os.Getenv("SQS_LISTENER_PAUSE_TIMEOUT"))
+
+	listener.New(
+		os.Getenv("SQS_QUEUE_URL"),
+		timeout,
+		maxNumberOfMessages,
+		sleep,
+	).Start(wg)
 }
 
 func actuatorServer(wg *sync.WaitGroup) {
@@ -43,8 +61,8 @@ func applicationServer(wg *sync.WaitGroup) {
 func configureMessageRepository() repository.RestMessageRepository {
 	messageRepository := repository.RestMessageRepository{
 		Client:               web.New(),
-		RepositoryServiceUrl: "http://local.onlyone-portal.com/repository-service",
-		RegistrationName:     "i18n-service",
+		RepositoryServiceUrl: os.Getenv("REPOSITORY_SERVICE_URL"),
+		RegistrationName:     os.Getenv("REGISTRATION_NAME"),
 	}
 	return messageRepository
 }
