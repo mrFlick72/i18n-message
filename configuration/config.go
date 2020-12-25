@@ -6,7 +6,6 @@ import (
 	"github/mrflick72/i18n-message/internal/message/listener"
 	"github/mrflick72/i18n-message/internal/message/repository"
 	"github/mrflick72/i18n-message/internal/web"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -34,9 +33,11 @@ func DocumentUpdatesListener(wg *sync.WaitGroup) {
 	timeout, _ := strconv.ParseInt(manager.GetConfigFor("SQS_TIMEOUT"), 10, 64)
 	maxNumberOfMessages, _ := strconv.ParseInt(manager.GetConfigFor("SQS_MAX_NUMBER_OF_MESSAGES"), 10, 64)
 	sleep, _ := time.ParseDuration(manager.GetConfigFor("SQS_LISTENER_PAUSE_TIMEOUT"))
+	mapping := manager.GetStringMapFor("update-signals")
 
 	listener.New(
-		os.Getenv("SQS_QUEUE_URL"),
+		mapping,
+		manager.GetConfigFor("SQS_QUEUE_URL"),
 		timeout,
 		maxNumberOfMessages,
 		sleep,

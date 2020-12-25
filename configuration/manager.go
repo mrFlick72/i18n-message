@@ -48,3 +48,6 @@ func (manager *Manager) Init(wg *sync.WaitGroup) {
 func (manager *Manager) GetConfigFor(configKey string) string {
 	return manager.viper.GetString(configKey)
 }
+func (manager *Manager) GetStringMapFor(configKey string) map[string]string {
+	return manager.viper.GetStringMapString(configKey)
+}

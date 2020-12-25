@@ -6,14 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/yalp/jsonpath"
-	"github/mrflick72/i18n-message/configuration"
 	"sync"
 	"time"
 )
 
-var manager = configuration.GetConfigurationManagerInstance()
-
 type UpdateSignalsListener struct {
+	queueMapping        map[string]string
 	toStop              bool
 	queueURL            string
 	timeout             int64
@@ -21,8 +19,9 @@ type UpdateSignalsListener struct {
 	sleep               time.Duration
 }
 
-func New(queueURL string, timeout int64, maxNumberOfMessages int64, sleep time.Duration) *UpdateSignalsListener {
+func New(queueMapping map[string]string, queueURL string, timeout int64, maxNumberOfMessages int64, sleep time.Duration) *UpdateSignalsListener {
 	return &UpdateSignalsListener{
+		queueMapping:        queueMapping,
 		queueURL:            queueURL,
 		timeout:             timeout,
 		maxNumberOfMessages: maxNumberOfMessages,
@@ -93,7 +92,7 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 
 	//business logic
 	message := "signal for messages updates from i18n-messages service"
-	queue := manager.GetConfigFor(fmt.Sprintf("update-signals.%v", applicationName))
+	queue := listener.queueMapping[applicationName.(string)]
 	_, err = client.SendMessage(
 		&sqs.SendMessageInput{
 			MessageBody: &message,
