@@ -3,8 +3,8 @@ package repository
 import (
 	"bufio"
 	"fmt"
-	"github/mrflick72/i18n-message/internal/strings/utils"
-	"github/mrflick72/i18n-message/internal/web"
+	"github/mrflick72/i18n-message/src/internal/strings/utils"
+	"github/mrflick72/i18n-message/src/internal/web"
 	"strings"
 )
 

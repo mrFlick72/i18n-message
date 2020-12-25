@@ -4,7 +4,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
-	"github/mrflick72/i18n-message/internal/heath"
+	"github/mrflick72/i18n-message/src/internal/heath"
 	"sync"
 )
 

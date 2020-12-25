@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github/mrflick72/i18n-message/configuration"
+	"github/mrflick72/i18n-message/src/configuration"
 	"sync"
 )
 

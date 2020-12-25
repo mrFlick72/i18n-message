@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/kataras/iris/v12"
-	"github/mrflick72/i18n-message/internal/message/repository"
+	"github/mrflick72/i18n-message/src/internal/message/repository"
 )
 
 type MessageEndpoints struct {
