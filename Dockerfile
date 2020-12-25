@@ -9,4 +9,4 @@ RUN go get -d -v ./...  && \
     go install -v ./... && \
     go build -o main
 
-CMD ["./main"]
+CMD ["./cmd/app/main"]

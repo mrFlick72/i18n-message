@@ -12,11 +12,13 @@ import (
 	"time"
 )
 
+var manager = GetConfigurationManagerInstance()
+
 func ConfigureMessageRepository() repository.RestMessageRepository {
 	messageRepository := repository.RestMessageRepository{
 		Client:               web.New(),
-		RepositoryServiceUrl: os.Getenv("REPOSITORY_SERVICE_URL"),
-		RegistrationName:     os.Getenv("REGISTRATION_NAME"),
+		RepositoryServiceUrl: manager.GetConfigFor("REPOSITORY_SERVICE_URL"),
+		RegistrationName:     manager.GetConfigFor("REGISTRATION_NAME"),
 	}
 	return messageRepository
 }
@@ -29,9 +31,9 @@ func ConfigureMessageEndpoints(messageRepository repository.RestMessageRepositor
 }
 
 func DocumentUpdatesListener(wg *sync.WaitGroup) {
-	timeout, _ := strconv.ParseInt(os.Getenv("SQS_TIMEOUT"), 10, 64)
-	maxNumberOfMessages, _ := strconv.ParseInt(os.Getenv("SQS_MAX_NUMBER_OF_MESSAGES"), 10, 64)
-	sleep, _ := time.ParseDuration(os.Getenv("SQS_LISTENER_PAUSE_TIMEOUT"))
+	timeout, _ := strconv.ParseInt(manager.GetConfigFor("SQS_TIMEOUT"), 10, 64)
+	maxNumberOfMessages, _ := strconv.ParseInt(manager.GetConfigFor("SQS_MAX_NUMBER_OF_MESSAGES"), 10, 64)
+	sleep, _ := time.ParseDuration(manager.GetConfigFor("SQS_LISTENER_PAUSE_TIMEOUT"))
 
 	listener.New(
 		os.Getenv("SQS_QUEUE_URL"),
