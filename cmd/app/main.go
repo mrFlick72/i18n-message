@@ -13,11 +13,11 @@ func main() {
 
 func initApplicationServer() {
 	wg := &sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 	go configuration.DocumentUpdatesListener(wg)
 	go configuration.NewApplicationServer(wg)
 	go configuration.NewActuatorServer(wg)
-
+	go configuration.NewARSocketServer(wg)
 	wg.Wait()
 }
 

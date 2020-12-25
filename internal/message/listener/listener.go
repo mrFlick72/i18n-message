@@ -78,7 +78,9 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 	}
 	applicationNameQuery, _ := jsonpath.Prepare("$.application.value")
 	applicationName, err := applicationNameQuery(msgResult)
-	// business logic
+
+	//business logic
+	fmt.Print(msgResult)
 	fmt.Printf("error during executing jsonpath query: %v", err)
 	fmt.Print(applicationName)
 
