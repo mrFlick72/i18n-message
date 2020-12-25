@@ -13,4 +13,4 @@ jobs:
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
             docker build . -t mrflick72/i18n-messages-k8s:snapshot
-            docker push
+            docker push mrflick72/i18n-messages-k8s:snapshot
