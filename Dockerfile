@@ -1,6 +1,6 @@
 FROM golang:1.14.3
 
-VOLUME /var/log/i18n-message
+VOLUME /var/log/onlyone-portal
 WORKDIR /go/src/app
 
 COPY . .
