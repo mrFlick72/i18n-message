@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+var (
+	patternWithLanguage    = "%s/documents/%s?path=%s&fileName=messages_%v&fileExt=properties"
+	patternWithoutLanguage = "%s/documents/%s?path=%s&fileName=messages&fileExt=properties"
+	acceptableLength       = 2
+	propertyKeyPosition    = 0
+	propertyValuePosition  = 1
+	translationNotFound    = 404
+	noLanguage             = ""
+	spliteratorCharacter   = "="
+)
+
 type Language = string
 type Message = map[string]string
 
@@ -16,7 +27,7 @@ type MessageRepository interface {
 }
 
 type RestMessageRepository struct {
-	Client               web.WebClient
+	Client               web.Client
 	RepositoryServiceUrl string
 	RegistrationName     string
 }
@@ -24,8 +35,6 @@ type RestMessageRepository struct {
 func (repository *RestMessageRepository) Find(application string, language Language) (*Message, error) {
 	result := make(Message)
 	repositoryServiceUrl := repository.repositoryUrlFor(application, language)
-	fmt.Println("repositoryServiceUrl")
-	fmt.Println(repositoryServiceUrl)
 	content := repository.contentFor(application, repositoryServiceUrl)
 
 	repository.loadFrom(content, result)
@@ -34,35 +43,33 @@ func (repository *RestMessageRepository) Find(application string, language Langu
 }
 
 func (repository *RestMessageRepository) contentFor(application string, repositoryServiceUrl string) string {
-	webResponse, _ := repository.Client.Get(&web.WebRequest{Url: repositoryServiceUrl})
-	if webResponse.Status == 404 {
-		repositoryServiceUrl := repository.repositoryUrlFor(application, "")
-		webResponse, _ = repository.Client.Get(&web.WebRequest{Url: repositoryServiceUrl})
+	webResponse, _ := repository.Client.Get(&web.Request{Url: repositoryServiceUrl})
+	if webResponse.Status == translationNotFound {
+		repositoryServiceUrl := repository.repositoryUrlFor(application, noLanguage)
+		webResponse, _ = repository.Client.Get(&web.Request{Url: repositoryServiceUrl})
 	}
 	content := webResponse.Body
 	return content
 }
 
 func (repository *RestMessageRepository) loadFrom(content string, result Message) {
-	fmt.Println("content")
-	fmt.Println(content)
 	reader := strings.NewReader(content)
 	scanner := bufio.NewScanner(reader)
 
 	for scanner.Scan() {
-		split := strings.Split(scanner.Text(), "=")
-		if len(split) == 2 {
-			result[utils.TrimStace(split[0])] = utils.TrimStace(split[1])
+		split := strings.Split(scanner.Text(), spliteratorCharacter)
+		if len(split) == acceptableLength {
+			result[utils.TrimStace(split[propertyKeyPosition])] = utils.TrimStace(split[propertyValuePosition])
 		}
 	}
 }
 
 func (repository *RestMessageRepository) repositoryUrlFor(application string, language Language) string {
-	if language != "" {
-		return fmt.Sprintf("%s/documents/%s?path=%s&fileName=messages_%v&fileExt=properties",
+	if language != noLanguage {
+		return fmt.Sprintf(patternWithLanguage,
 			repository.RepositoryServiceUrl, repository.RegistrationName, application, language)
 	} else {
-		return fmt.Sprintf("%s/documents/%s?path=%s&fileName=messages&fileExt=properties",
+		return fmt.Sprintf(patternWithoutLanguage,
 			repository.RepositoryServiceUrl, repository.RegistrationName, application)
 	}
 }

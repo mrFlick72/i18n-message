@@ -2,35 +2,35 @@ package web
 
 import "github.com/go-resty/resty/v2"
 
-type WebResponse struct {
+type Response struct {
 	Body   string
 	Status int
 }
 
 type Uri = string
 
-type WebRequest struct {
+type Request struct {
 	Url Uri
 }
 
-type WebClient interface {
-	Get(request *WebRequest) (*WebResponse, error)
+type Client interface {
+	Get(request *Request) (*Response, error)
 }
 
 type RestWebClient struct {
 	client *resty.Client
 }
 
-func (r *RestWebClient) Get(request *WebRequest) (*WebResponse, error) {
+func (r *RestWebClient) Get(request *Request) (*Response, error) {
 	response, _ := r.client.R().Get(request.Url)
 
-	return &WebResponse{
+	return &Response{
 		Body:   string(response.Body()),
 		Status: response.StatusCode(),
 	}, nil
 }
 
-func New() WebClient {
+func New() Client {
 	return &RestWebClient{
 		client: resty.New(),
 	}
