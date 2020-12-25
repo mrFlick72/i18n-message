@@ -25,8 +25,8 @@ func GetConfigurationManagerInstance() *Manager {
 	return configurationManager
 }
 func (manager *Manager) Init(wg *sync.WaitGroup) {
-	configClient, err := cloudconfigclient.NewLocalClient(&http.Client{}, []string{os.Getenv("CONFIG_SERVER_URL")})
-	config, err := configClient.GetConfiguration("i18n-messages", []string{os.Getenv("APPLICATION_PROFILE")})
+	configClient, err := cloudconfigclient.NewLocalClient(&http.Client{}, []string{os.Getenv("spring.cloud.config.uri")})
+	config, err := configClient.GetConfiguration("i18n-messages", []string{os.Getenv("spring.profiles.active")})
 	if err != nil {
 		panic(err)
 	}
