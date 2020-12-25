@@ -6,18 +6,16 @@ import (
 )
 
 func main() {
-	// Creates an iris application without any middleware by default
 	initConfigurationManager()
 	initApplicationServer()
 }
 
 func initApplicationServer() {
 	wg := &sync.WaitGroup{}
-	wg.Add(4)
+	wg.Add(3)
 	go configuration.DocumentUpdatesListener(wg)
 	go configuration.NewApplicationServer(wg)
 	go configuration.NewActuatorServer(wg)
-	go configuration.NewARSocketServer(wg)
 	wg.Wait()
 }
 

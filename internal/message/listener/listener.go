@@ -6,9 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/yalp/jsonpath"
+	"github/mrflick72/i18n-message/configuration"
 	"sync"
 	"time"
 )
+
+var manager = configuration.GetConfigurationManagerInstance()
 
 type UpdateSignalsListener struct {
 	toStop              bool
@@ -52,7 +55,7 @@ func (listener *UpdateSignalsListener) Start(wg *sync.WaitGroup) {
 
 func (listener *UpdateSignalsListener) onMessage(client *sqs.SQS) {
 	msgResult, msgErr := listener.receiveFrom(client)
-	listener.dispatchMessageTo(msgErr, msgResult)
+	listener.dispatchMessageTo(msgErr, msgResult, client)
 }
 
 func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.ReceiveMessageOutput, error) {
@@ -72,16 +75,29 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 	return msgResult, msgErr
 }
 
-func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput) {
+func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if msgErr != nil {
 		fmt.Printf("error in receiving message error is: %v", msgErr)
 	}
-	applicationNameQuery, _ := jsonpath.Prepare("$.application.value")
+	applicationNameQuery, err := jsonpath.Prepare("$.application.value")
+	if err != nil {
+		fmt.Printf("error during jsonpath query preparation error message: %v", err)
+		return
+	}
+
 	applicationName, err := applicationNameQuery(msgResult)
+	if err != nil {
+		fmt.Printf("error during jsonpath query evaluation error message: %v", err)
+		return
+	}
 
 	//business logic
-	fmt.Print(msgResult)
-	fmt.Printf("error during executing jsonpath query: %v", err)
-	fmt.Print(applicationName)
-
+	message := "signal for messages updates from i18n-messages service"
+	queue := manager.GetConfigFor(fmt.Sprintf("update-signals.%v", applicationName))
+	_, err = client.SendMessage(
+		&sqs.SendMessageInput{
+			MessageBody: &message,
+			QueueUrl:    &queue,
+		})
+	fmt.Printf("error during update signal send. Error message: %v", err)
 }
