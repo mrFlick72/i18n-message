@@ -2,7 +2,6 @@ package main
 
 import (
 	"github/mrflick72/i18n-message/configuration"
-	"github/mrflick72/i18n-message/internal/web"
 	"sync"
 )
 
@@ -12,8 +11,8 @@ func main() {
 	wg.Add(2)
 
 	go configuration.DocumentUpdatesListener(wg)
-	go web.NewApplicationServer(wg)
-	go web.NewActuatorServer(wg)
+	go configuration.NewApplicationServer(wg)
+	go configuration.NewActuatorServer(wg)
 
 	wg.Wait()
 }
