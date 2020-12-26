@@ -7,43 +7,44 @@ import (
 	"os"
 )
 
-var (
-	manager   = configuration.GetConfigurationManagerInstance()
-	fileName  = manager.GetConfigFor("logging.fileName")
-	logger, _ = loggerConfigurer().Build()
-)
+var manager = configuration.GetConfigurationManagerInstance()
 
-func loggerConfigurer() zap.Config {
+type Logger struct {
+	logger *zap.Logger
+}
+
+func New() *Logger {
+	fileName := os.Getenv("logging.fileName")
+
 	cfg := zap.NewProductionConfig()
 
 	fmt.Println("log file name: ", fileName)
 	if len(fileName) > 0 {
 		_, err := os.Create(fileName)
 		if err != nil {
-			panic("log file des not exist")
+			panic("log file does not exist")
 		}
 
 		cfg.OutputPaths = []string{fileName}
 	}
-	return cfg
+	log, _ := cfg.Build()
+	return &Logger{
+		logger: log,
+	}
 }
 
-func Logger() *zap.Logger {
-	return logger
+func (impl *Logger) LogErrorFor(message interface{}) {
+	str := fmt.Sprintf("%v", message)
+	impl.logger.Error(str)
 }
 
-func LogErrorFor(message interface{}) {
+func (impl *Logger) LogInfoFor(message interface{}) {
 	str := fmt.Sprintf("%v", message)
-	logger.Error(str)
+	impl.logger.Info(str)
 }
-
-func LogInfoFor(message interface{}) {
+func (impl *Logger) LogDebugFor(message interface{}) {
 	str := fmt.Sprintf("%v", message)
-	logger.Info(str)
-}
-func LogDebugFor(message interface{}) {
-	str := fmt.Sprintf("%v", message)
-	logger.Debug(str)
+	impl.logger.Debug(str)
 }
 
 func Dispose() {

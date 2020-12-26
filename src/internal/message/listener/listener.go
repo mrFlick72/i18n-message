@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var logger = logging.New()
+
 type UpdateSignalsListener struct {
 	queueMapping        map[string]string
 	toStop              bool
@@ -77,17 +79,18 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 
 func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if msgErr != nil {
-		logging.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
+		logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
+		return
 	}
 	applicationNameQuery, err := jsonpath.Prepare("$.application.value")
 	if err != nil {
-		logging.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
+		logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
 		return
 	}
 
 	applicationName, err := applicationNameQuery(msgResult)
 	if err != nil {
-		logging.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
+		logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
 		return
 	}
 
@@ -99,5 +102,5 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 			MessageBody: &message,
 			QueueUrl:    &queue,
 		})
-	logging.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+	logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
 }
