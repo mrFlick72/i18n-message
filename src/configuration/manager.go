@@ -1,10 +1,12 @@
 package configuration
 
 import (
+	"fmt"
 	"github.com/Piszmog/cloudconfigclient"
 	"github.com/spf13/viper"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -34,6 +36,12 @@ func (manager *Manager) Init(wg *sync.WaitGroup) {
 	manager.viper = viper.New()
 	for key, value := range config.PropertySources[1].Source {
 		manager.viper.SetDefault(key, value)
+	}
+
+	for _, pair := range os.Environ() {
+		fmt.Println(pair)
+		keyPair := strings.Split(pair, "=")
+		manager.viper.SetDefault(keyPair[0], keyPair[1])
 	}
 
 	viper.SetConfigName("application.yaml")
