@@ -15,7 +15,7 @@ type Logger struct {
 }
 
 func New() *Logger {
-	fileName := manager.GetConfigFor("logging.fileName")
+	fileName := manager.GetStringMapFor("logging")["fileName"]
 	log.Printf("log fileName: %v", fileName)
 	cfg := zap.NewProductionConfig()
 
