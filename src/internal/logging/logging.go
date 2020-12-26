@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github/mrflick72/i18n-message/src/configuration"
 	"go.uber.org/zap"
+	"log"
 	"os"
 )
 
@@ -15,7 +16,7 @@ type Logger struct {
 
 func New() *Logger {
 	fileName := manager.GetConfigFor("logging.fileName")
-
+	log.Printf("log fileName: %v", fileName)
 	cfg := zap.NewProductionConfig()
 
 	fmt.Println("log file name: ", fileName)
