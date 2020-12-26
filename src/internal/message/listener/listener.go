@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-var logger = logging.New()
-
 type UpdateSignalsListener struct {
 	queueMapping        map[string]string
 	toStop              bool
@@ -20,15 +18,17 @@ type UpdateSignalsListener struct {
 	timeout             int64
 	maxNumberOfMessages int64
 	sleep               time.Duration
+	logger              *logging.Logger
 }
 
-func New(queueMapping map[string]string, queueURL string, timeout int64, maxNumberOfMessages int64, sleep time.Duration) *UpdateSignalsListener {
+func New(queueMapping map[string]string, queueURL string, timeout int64, maxNumberOfMessages int64, sleep time.Duration, logger *logging.Logger) *UpdateSignalsListener {
 	return &UpdateSignalsListener{
 		queueMapping:        queueMapping,
 		queueURL:            queueURL,
 		timeout:             timeout,
 		maxNumberOfMessages: maxNumberOfMessages,
 		sleep:               sleep,
+		logger:              logger,
 	}
 }
 
@@ -79,18 +79,18 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 
 func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if msgErr != nil {
-		logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
+		listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
 		return
 	}
 	applicationNameQuery, err := jsonpath.Prepare("$.application.value")
 	if err != nil {
-		logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
+		listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
 		return
 	}
 
 	applicationName, err := applicationNameQuery(msgResult)
 	if err != nil {
-		logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
+		listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
 		return
 	}
 
@@ -102,5 +102,5 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 			MessageBody: &message,
 			QueueUrl:    &queue,
 		})
-	logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+	listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
 }
