@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/yalp/jsonpath"
+	"github/mrflick72/i18n-message/src/internal/logging"
 	"sync"
 	"time"
 )
@@ -76,17 +77,17 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 
 func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if msgErr != nil {
-		fmt.Printf("error in receiving message error is: %v", msgErr)
+		logging.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
 	}
 	applicationNameQuery, err := jsonpath.Prepare("$.application.value")
 	if err != nil {
-		fmt.Printf("error during jsonpath query preparation error message: %v", err)
+		logging.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
 		return
 	}
 
 	applicationName, err := applicationNameQuery(msgResult)
 	if err != nil {
-		fmt.Printf("error during jsonpath query evaluation error message: %v", err)
+		logging.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
 		return
 	}
 
@@ -98,5 +99,5 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 			MessageBody: &message,
 			QueueUrl:    &queue,
 		})
-	fmt.Printf("error during update signal send. Error message: %v", err)
+	logging.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
 }

@@ -1,4 +1,4 @@
-package configuration
+package application
 
 import (
 	"github.com/kataras/iris/v12"

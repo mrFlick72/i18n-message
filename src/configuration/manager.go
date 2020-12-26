@@ -1,9 +1,9 @@
 package configuration
 
 import (
-	"fmt"
 	"github.com/Piszmog/cloudconfigclient"
 	"github.com/spf13/viper"
+	"github/mrflick72/i18n-message/src/internal/logging"
 	"net/http"
 	"os"
 	"sync"
@@ -43,7 +43,7 @@ func (manager *Manager) Init(wg *sync.WaitGroup) {
 	manager.viper.AutomaticEnv()
 	manager.viper.ReadInConfig()
 
-	fmt.Println(manager.viper)
+	logging.LogDebugFor(manager.viper)
 	wg.Done()
 }
 

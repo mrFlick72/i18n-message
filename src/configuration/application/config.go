@@ -1,8 +1,9 @@
-package configuration
+package application
 
 import (
 	"github.com/kataras/iris/v12"
 	"github/mrflick72/i18n-message/src/api"
+	"github/mrflick72/i18n-message/src/configuration"
 	"github/mrflick72/i18n-message/src/internal/message/listener"
 	"github/mrflick72/i18n-message/src/internal/message/repository"
 	"github/mrflick72/i18n-message/src/internal/web"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-var manager = GetConfigurationManagerInstance()
+var manager = configuration.GetConfigurationManagerInstance()
 
 func ConfigureMessageRepository() repository.RestMessageRepository {
 	messageRepository := repository.RestMessageRepository{
