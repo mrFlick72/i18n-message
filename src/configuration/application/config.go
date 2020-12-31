@@ -33,6 +33,7 @@ func ConfigureMessageEndpoints(messageRepository repository.RestMessageRepositor
 
 func DocumentUpdatesListener(wg *sync.WaitGroup) {
 	timeout, _ := strconv.ParseInt(manager.GetConfigFor("SQS_TIMEOUT"), 10, 64)
+	waitTimeSeconds, _ := strconv.ParseInt(manager.GetConfigFor("SQS_WAIT_TIME_SECONDS"), 10, 64)
 	maxNumberOfMessages, _ := strconv.ParseInt(manager.GetConfigFor("SQS_MAX_NUMBER_OF_MESSAGES"), 10, 64)
 	sleep, _ := time.ParseDuration(manager.GetConfigFor("SQS_LISTENER_PAUSE_TIMEOUT"))
 	mapping := manager.GetStringMapFor("update-signals")
@@ -41,6 +42,7 @@ func DocumentUpdatesListener(wg *sync.WaitGroup) {
 		mapping,
 		manager.GetConfigFor("SQS_QUEUE_URL"),
 		timeout,
+		waitTimeSeconds,
 		maxNumberOfMessages,
 		sleep,
 		logging.New(),

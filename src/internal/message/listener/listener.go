@@ -16,16 +16,18 @@ type UpdateSignalsListener struct {
 	toStop              bool
 	queueURL            string
 	timeout             int64
+	waitTimeSeconds     int64
 	maxNumberOfMessages int64
 	sleep               time.Duration
 	logger              *logging.Logger
 }
 
-func New(queueMapping map[string]string, queueURL string, timeout int64, maxNumberOfMessages int64, sleep time.Duration, logger *logging.Logger) *UpdateSignalsListener {
+func New(queueMapping map[string]string, queueURL string, timeout int64, waitTimeSeconds int64, maxNumberOfMessages int64, sleep time.Duration, logger *logging.Logger) *UpdateSignalsListener {
 	return &UpdateSignalsListener{
 		queueMapping:        queueMapping,
 		queueURL:            queueURL,
 		timeout:             timeout,
+		waitTimeSeconds:     waitTimeSeconds,
 		maxNumberOfMessages: maxNumberOfMessages,
 		sleep:               sleep,
 		logger:              logger,
@@ -72,6 +74,7 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 			QueueUrl:            &(listener).queueURL,
 			MaxNumberOfMessages: &(listener).maxNumberOfMessages,
 			VisibilityTimeout:   &(listener).timeout,
+			WaitTimeSeconds:     &(listener).waitTimeSeconds,
 		},
 	)
 	return msgResult, msgErr
