@@ -77,33 +77,38 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 			WaitTimeSeconds:     &(listener).waitTimeSeconds,
 		},
 	)
+	fmt.Printf("messge: %v", msgResult)
 	return msgResult, msgErr
 }
 
 func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
-	if msgErr != nil {
-		listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
-		return
-	}
-	applicationNameQuery, err := jsonpath.Prepare("$.application.value")
-	if err != nil {
-		listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
-		return
-	}
+	if len(msgResult.Messages) != 0 {
+		if msgErr != nil {
+			listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
+			return
+		}
+		applicationNameQuery, err := jsonpath.Prepare("$.application.value")
+		if err != nil {
+			listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
+			return
+		}
 
-	applicationName, err := applicationNameQuery(msgResult)
-	if err != nil {
-		listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
-		return
-	}
+		applicationName, err := applicationNameQuery(msgResult)
+		if err != nil {
+			listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
+			return
+		}
 
-	//business logic
-	message := "signal for messages updates from i18n-messages service"
-	queue := listener.queueMapping[applicationName.(string)]
-	_, err = client.SendMessage(
-		&sqs.SendMessageInput{
-			MessageBody: &message,
-			QueueUrl:    &queue,
-		})
-	listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+		//business logic
+		message := "signal for messages updates from i18n-messages service"
+		queue := listener.queueMapping[applicationName.(string)]
+		_, err = client.SendMessage(
+			&sqs.SendMessageInput{
+				MessageBody: &message,
+				QueueUrl:    &queue,
+			})
+		listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+	} else {
+		listener.logger.LogDebugFor("empty message")
+	}
 }
