@@ -115,7 +115,7 @@ func (listener *UpdateSignalsListener) getApplicationDataFrom(message *sqs.Messa
 		listener.logger.LogDebugFor(fmt.Sprintf("error during unmarshalling error message: %v", err))
 		return nil, err
 	} else {
-		listener.logger.LogDebugFor(fmt.Sprintf("application data to update: %v", applicationUpdateSignal))
+		listener.logger.LogInfoFor(fmt.Sprintf("application data to update: %v", applicationUpdateSignal))
 	}
 	return &applicationUpdateSignal, err
 }
@@ -139,8 +139,7 @@ func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplica
 
 func (listener *UpdateSignalsListener) deleteConsumedMessage(message sqs.Message, err error, client *sqs.SQS) {
 	if err == nil {
-		listener.logger.LogDebugFor(
-			fmt.Sprintf("start to delete message with ReceiptHandle: %v", *message.ReceiptHandle))
+		listener.logger.LogInfoFor(fmt.Sprintf("start to delete message with ReceiptHandle: %v", *message.ReceiptHandle))
 		_, err = client.DeleteMessage(&sqs.DeleteMessageInput{
 			QueueUrl:      &listener.queueURL,
 			ReceiptHandle: message.ReceiptHandle,
