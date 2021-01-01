@@ -60,7 +60,11 @@ func (listener *UpdateSignalsListener) Start(wg *sync.WaitGroup) {
 
 func (listener *UpdateSignalsListener) onMessage(client *sqs.SQS) {
 	msgResult, msgErr := listener.receiveFrom(client)
-	listener.dispatchMessageTo(msgErr, msgResult, client)
+	if msgErr == nil {
+		listener.dispatchMessageTo(msgResult, client)
+	} else {
+		listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
+	}
 }
 
 func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.ReceiveMessageOutput, error) {
@@ -83,22 +87,20 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 	return msgResult, msgErr
 }
 
-func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
+func (listener *UpdateSignalsListener) dispatchMessageTo(msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if len(msgResult.Messages) != 0 {
-
-		listener.logger.LogInfoFor("msgResult")
-		listener.logger.LogInfoFor(msgResult)
-		if msgErr != nil {
-			listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
-			return
-		}
-
-		for _, message := range msgResult.Messages {
-			applicationUpdateSignal, err := listener.getApplicationDataFrom(message)
-			listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
-		}
+		listener.processMessages(msgResult, client)
 	} else {
 		listener.logger.LogDebugFor("empty message")
+	}
+}
+
+func (listener *UpdateSignalsListener) processMessages(msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
+	listener.logger.LogInfoFor("msgResult")
+	listener.logger.LogInfoFor(msgResult)
+	for _, message := range msgResult.Messages {
+		applicationUpdateSignal, err := listener.getApplicationDataFrom(message)
+		listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
 	}
 }
 
