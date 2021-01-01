@@ -82,7 +82,6 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 		},
 	)
 	listener.logger.LogInfoFor(fmt.Sprintf("messge: %v", msgResult))
-	fmt.Printf("messge: %v", msgResult)
 	return msgResult, msgErr
 }
 
@@ -97,10 +96,11 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgResult *sqs.ReceiveM
 func (listener *UpdateSignalsListener) processMessages(msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	listener.logger.LogInfoFor("msgResult")
 	listener.logger.LogInfoFor(msgResult)
+
 	for _, message := range msgResult.Messages {
 		applicationUpdateSignal, err := listener.getApplicationDataFrom(message)
-		err = listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
-		listener.deleteConsumedMessage(*message, err, client)
+		fireUpdateEventToError := listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
+		listener.deleteConsumedMessage(*message, fireUpdateEventToError, client)
 	}
 }
 
@@ -121,7 +121,7 @@ func (listener *UpdateSignalsListener) getApplicationDataFrom(message *sqs.Messa
 }
 
 func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) error {
-	if err != nil {
+	if err == nil {
 		message := "signal for messages updates from i18n-messages service"
 		queue := listener.queueMapping[application.Name]
 		input := sqs.SendMessageInput{
