@@ -99,7 +99,8 @@ func (listener *UpdateSignalsListener) processMessages(msgResult *sqs.ReceiveMes
 	listener.logger.LogInfoFor(msgResult)
 	for _, message := range msgResult.Messages {
 		applicationUpdateSignal, err := listener.getApplicationDataFrom(message)
-		listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
+		err = listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
+		listener.deleteConsumedMessage(*message, err, client)
 	}
 }
 
@@ -119,10 +120,10 @@ func (listener *UpdateSignalsListener) getApplicationDataFrom(message *sqs.Messa
 	return &applicationUpdateSignal, err
 }
 
-func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) {
+func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) error {
 	if err != nil {
 		message := "signal for messages updates from i18n-messages service"
-		queue := listener.queueMapping[application.Path]
+		queue := listener.queueMapping[application.Name]
 		_, err = client.SendMessage(
 			&sqs.SendMessageInput{
 				MessageBody: &message,
@@ -133,8 +134,24 @@ func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplica
 			listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
 		}
 	}
+	return err
+}
+
+func (listener *UpdateSignalsListener) deleteConsumedMessage(message sqs.Message, err error, client *sqs.SQS) {
+	if err == nil {
+		listener.logger.LogDebugFor(
+			fmt.Sprintf("start to delete message with ReceiptHandle: %v", *message.ReceiptHandle))
+		_, err = client.DeleteMessage(&sqs.DeleteMessageInput{
+			QueueUrl:      &listener.queueURL,
+			ReceiptHandle: message.ReceiptHandle,
+		})
+	}
+
+	if err != nil {
+		listener.logger.LogErrorFor(fmt.Sprintf("Error to delete consumed message error message: %v", err))
+	}
 }
 
 type I18nApplicationUpdateSignal struct {
-	Path string
+	Name string `json:"path"`
 }
