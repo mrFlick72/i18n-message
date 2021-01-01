@@ -1,11 +1,12 @@
 package listener
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/yalp/jsonpath"
+	//"github.com/yalp/jsonpath"
 	"github/mrflick72/i18n-message/src/internal/logging"
 	"sync"
 	"time"
@@ -77,38 +78,56 @@ func (listener *UpdateSignalsListener) receiveFrom(client *sqs.SQS) (*sqs.Receiv
 			WaitTimeSeconds:     &(listener).waitTimeSeconds,
 		},
 	)
+	listener.logger.LogInfoFor(fmt.Sprintf("messge: %v", msgResult))
 	fmt.Printf("messge: %v", msgResult)
 	return msgResult, msgErr
 }
 
 func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult *sqs.ReceiveMessageOutput, client *sqs.SQS) {
 	if len(msgResult.Messages) != 0 {
+
+		listener.logger.LogInfoFor("msgResult")
+		listener.logger.LogInfoFor(msgResult)
 		if msgErr != nil {
 			listener.logger.LogErrorFor(fmt.Sprintf("error in receiving message error is: %v", msgErr))
 			return
 		}
-		applicationNameQuery, err := jsonpath.Prepare("$.application.value")
-		if err != nil {
-			listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query preparation error message: %v", err))
-			return
-		}
 
-		applicationName, err := applicationNameQuery(msgResult)
-		if err != nil {
-			listener.logger.LogErrorFor(fmt.Sprintf("error during jsonpath query evaluation error message: %v", err))
-			return
-		}
+		for _, message := range msgResult.Messages {
+			listener.logger.LogDebugFor("message.Body")
+			listener.logger.LogDebugFor(*message.Body)
 
-		//business logic
-		message := "signal for messages updates from i18n-messages service"
-		queue := listener.queueMapping[applicationName.(string)]
-		_, err = client.SendMessage(
-			&sqs.SendMessageInput{
-				MessageBody: &message,
-				QueueUrl:    &queue,
-			})
-		listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+			applicationUpdateSignal := I18nApplicationUpdateSignal{}
+			err := json.Unmarshal([]byte(*message.Body), &applicationUpdateSignal)
+
+			if err != nil {
+				listener.logger.LogDebugFor(fmt.Sprintf("error during unmarshalling error message: %v", err))
+				return
+			} else {
+				listener.logger.LogDebugFor(fmt.Sprintf("application data to update: %v", applicationUpdateSignal))
+			}
+
+			//business logic
+			listener.fireUpdateEventTo(applicationUpdateSignal, err, client)
+		}
 	} else {
 		listener.logger.LogDebugFor("empty message")
 	}
+}
+
+func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) {
+	message := "signal for messages updates from i18n-messages service"
+	queue := listener.queueMapping[application.Path]
+	_, err = client.SendMessage(
+		&sqs.SendMessageInput{
+			MessageBody: &message,
+			QueueUrl:    &queue,
+		})
+	if err != nil {
+		listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+	}
+}
+
+type I18nApplicationUpdateSignal struct {
+	Path string
 }
