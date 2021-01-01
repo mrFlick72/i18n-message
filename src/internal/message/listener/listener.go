@@ -94,37 +94,43 @@ func (listener *UpdateSignalsListener) dispatchMessageTo(msgErr error, msgResult
 		}
 
 		for _, message := range msgResult.Messages {
-			listener.logger.LogDebugFor("message.Body")
-			listener.logger.LogDebugFor(*message.Body)
-
-			applicationUpdateSignal := I18nApplicationUpdateSignal{}
-			err := json.Unmarshal([]byte(*message.Body), &applicationUpdateSignal)
-
-			if err != nil {
-				listener.logger.LogDebugFor(fmt.Sprintf("error during unmarshalling error message: %v", err))
-				return
-			} else {
-				listener.logger.LogDebugFor(fmt.Sprintf("application data to update: %v", applicationUpdateSignal))
-			}
-
-			//business logic
-			listener.fireUpdateEventTo(applicationUpdateSignal, err, client)
+			applicationUpdateSignal, err := listener.getApplicationDataFrom(message)
+			listener.fireUpdateEventTo(*applicationUpdateSignal, err, client)
 		}
 	} else {
 		listener.logger.LogDebugFor("empty message")
 	}
 }
 
-func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) {
-	message := "signal for messages updates from i18n-messages service"
-	queue := listener.queueMapping[application.Path]
-	_, err = client.SendMessage(
-		&sqs.SendMessageInput{
-			MessageBody: &message,
-			QueueUrl:    &queue,
-		})
+func (listener *UpdateSignalsListener) getApplicationDataFrom(message *sqs.Message) (*I18nApplicationUpdateSignal, error) {
+	listener.logger.LogDebugFor("message.Body")
+	listener.logger.LogDebugFor(*message.Body)
+
+	applicationUpdateSignal := I18nApplicationUpdateSignal{}
+	err := json.Unmarshal([]byte(*message.Body), &applicationUpdateSignal)
+
 	if err != nil {
-		listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+		listener.logger.LogDebugFor(fmt.Sprintf("error during unmarshalling error message: %v", err))
+		return nil, err
+	} else {
+		listener.logger.LogDebugFor(fmt.Sprintf("application data to update: %v", applicationUpdateSignal))
+	}
+	return &applicationUpdateSignal, err
+}
+
+func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplicationUpdateSignal, err error, client *sqs.SQS) {
+	if err != nil {
+		message := "signal for messages updates from i18n-messages service"
+		queue := listener.queueMapping[application.Path]
+		_, err = client.SendMessage(
+			&sqs.SendMessageInput{
+				MessageBody: &message,
+				QueueUrl:    &queue,
+			})
+
+		if err != nil {
+			listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+		}
 	}
 }
 
