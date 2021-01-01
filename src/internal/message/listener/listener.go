@@ -46,7 +46,7 @@ func (listener *UpdateSignalsListener) Start(wg *sync.WaitGroup) {
 	}))
 
 	svc := sqs.New(sess)
-	for true {
+	for {
 		if listener.toStop == true {
 			break
 		}
@@ -124,14 +124,16 @@ func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplica
 	if err != nil {
 		message := "signal for messages updates from i18n-messages service"
 		queue := listener.queueMapping[application.Name]
-		_, err = client.SendMessage(
-			&sqs.SendMessageInput{
-				MessageBody: &message,
-				QueueUrl:    &queue,
-			})
+		input := sqs.SendMessageInput{
+			MessageBody: &message,
+			QueueUrl:    &queue,
+		}
+		_, err = client.SendMessage(&input)
 
 		if err != nil {
 			listener.logger.LogErrorFor(fmt.Sprintf("error during update signal send. Error message: %v", err))
+		} else {
+			listener.logger.LogInfoFor(fmt.Sprintf("message sent:  %v", input))
 		}
 	}
 	return err
@@ -139,7 +141,8 @@ func (listener *UpdateSignalsListener) fireUpdateEventTo(application I18nApplica
 
 func (listener *UpdateSignalsListener) deleteConsumedMessage(message sqs.Message, err error, client *sqs.SQS) {
 	if err == nil {
-		listener.logger.LogInfoFor(fmt.Sprintf("start to delete message with ReceiptHandle: %v", *message.ReceiptHandle))
+		listener.logger.LogInfoFor(
+			fmt.Sprintf("start to delete message with ReceiptHandle: %v \n and quque: %v", *message.ReceiptHandle, listener.queueURL))
 		_, err = client.DeleteMessage(&sqs.DeleteMessageInput{
 			QueueUrl:      &listener.queueURL,
 			ReceiptHandle: message.ReceiptHandle,
