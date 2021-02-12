@@ -9,7 +9,7 @@ type MessageEndpoints struct {
 	Repository repository.MessageRepository
 }
 
-func (endpoint *MessageEndpoints) ResgisterEndpoint(application *iris.Application) {
+func (endpoint *MessageEndpoints) RegisterEndpoint(application *iris.Application) {
 	application.Get("/messages/{application}", endpoint.getMessagesEndpoint)
 }
 

@@ -28,7 +28,7 @@ func ConfigureMessageEndpoints(messageRepository repository.RestMessageRepositor
 	endpoints := api.MessageEndpoints{
 		Repository: &messageRepository,
 	}
-	endpoints.ResgisterEndpoint(app)
+	endpoints.RegisterEndpoint(app)
 }
 
 func DocumentUpdatesListener(wg *sync.WaitGroup) {
