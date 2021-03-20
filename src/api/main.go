@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/kataras/iris/v12"
 	"github/mrflick72/i18n-message/src/internal/message/repository"
+	"github/mrflick72/i18n-message/src/internal/tracing"
 )
 
 type MessageEndpoints struct {
@@ -16,11 +17,18 @@ func (endpoint *MessageEndpoints) RegisterEndpoint(application *iris.Application
 func (endpoint *MessageEndpoints) getMessagesEndpoint(ctx iris.Context) {
 	application := ctx.Params().Get("application")
 	lang := urlParam(ctx, "lang", "")
-	find, _ := endpoint.Repository.Find(application, lang)
+
+	context := tracingContextFrom(ctx)
+
+	find, _ := endpoint.Repository.Find(application, lang, context)
 
 	ctx.JSON(find)
 	ctx.StatusCode(iris.StatusOK)
 	return
+}
+
+func tracingContextFrom(ctx iris.Context) map[string]string {
+	return tracing.GetTracingHeadersFrom(ctx)
 }
 
 func urlParam(ctx iris.Context, paramName string, defaultValue string) string {

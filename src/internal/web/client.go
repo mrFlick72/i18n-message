@@ -8,9 +8,11 @@ type Response struct {
 }
 
 type Uri = string
+type Headers = map[string]string
 
 type Request struct {
-	Url Uri
+	Url    Uri
+	Header Headers
 }
 
 type Client interface {
@@ -22,7 +24,12 @@ type RestWebClient struct {
 }
 
 func (r *RestWebClient) Get(request *Request) (*Response, error) {
-	response, _ := r.client.R().Get(request.Url)
+	client := r.client.R()
+	for key, value := range request.Header {
+		client.SetHeader(key, value)
+	}
+
+	response, _ := client.Get(request.Url)
 
 	return &Response{
 		Body:   string(response.Body()),

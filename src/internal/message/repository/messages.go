@@ -23,7 +23,7 @@ type Language = string
 type Message = map[string]string
 
 type MessageRepository interface {
-	Find(application string, language string) (*Message, error)
+	Find(application string, language string, context map[string]string) (*Message, error)
 }
 
 type RestMessageRepository struct {
@@ -32,18 +32,18 @@ type RestMessageRepository struct {
 	RegistrationName     string
 }
 
-func (repository *RestMessageRepository) Find(application string, language Language) (*Message, error) {
+func (repository *RestMessageRepository) Find(application string, language string, context map[string]string) (*Message, error) {
 	result := make(Message)
 	repositoryServiceUrl := repository.repositoryUrlFor(application, language)
-	content := repository.contentFor(application, repositoryServiceUrl)
+	content := repository.contentFor(application, repositoryServiceUrl, context)
 
 	repository.loadFrom(content, result)
 
 	return &result, nil
 }
 
-func (repository *RestMessageRepository) contentFor(application string, repositoryServiceUrl string) string {
-	webResponse, _ := repository.Client.Get(&web.Request{Url: repositoryServiceUrl})
+func (repository *RestMessageRepository) contentFor(application string, repositoryServiceUrl string, context map[string]string) string {
+	webResponse, _ := repository.Client.Get(&web.Request{Url: repositoryServiceUrl, Header: context})
 	if webResponse.Status == translationNotFound {
 		repositoryServiceUrl := repository.repositoryUrlFor(application, noLanguage)
 		webResponse, _ = repository.Client.Get(&web.Request{Url: repositoryServiceUrl})

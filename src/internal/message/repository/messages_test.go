@@ -34,7 +34,7 @@ func TestRestMessageRepository_Find(t *testing.T) {
 		RegistrationName:     "i18n-messages",
 	}
 
-	actual, _ := repository.Find("AN_APPLICATION", lang)
+	actual, _ := repository.Find("AN_APPLICATION", lang, nil)
 	assert.EqualValues(t, *actual, expected)
 }
 
@@ -54,7 +54,7 @@ func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 		RegistrationName:     "i18n-messages",
 	}
 
-	actual, _ := repository.Find("AN_APPLICATION", "")
+	actual, _ := repository.Find("AN_APPLICATION", "", nil)
 	assert.EqualValues(t, *actual, expected)
 }
 
@@ -80,7 +80,7 @@ func TestRestMessageRepository_Find_Wit_Fallback(t *testing.T) {
 		Status: 200,
 	})
 
-	actual, _ := repository.Find(application, language)
+	actual, _ := repository.Find(application, language, nil)
 	assert.EqualValues(t, *actual, expected)
 }
 
