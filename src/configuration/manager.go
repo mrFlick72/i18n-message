@@ -1,12 +1,8 @@
 package configuration
 
 import (
-	"fmt"
-	"github.com/Piszmog/cloudconfigclient"
 	"github.com/spf13/viper"
-	"net/http"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -27,34 +23,15 @@ func GetConfigurationManagerInstance() *Manager {
 	return configurationManager
 }
 func (manager *Manager) Init(wg *sync.WaitGroup) {
-	configClient, err := cloudconfigclient.NewLocalClient(&http.Client{}, []string{os.Getenv("spring.cloud.config.uri")})
-	config, err := configClient.GetConfiguration("i18n-messages", []string{os.Getenv("spring.profiles.active")})
-	if err != nil {
-		panic(err)
-	}
-
 	manager.viper = viper.New()
-	for key, value := range config.PropertySources[1].Source {
-		manager.viper.SetDefault(key, value)
-	}
 
-	for _, pair := range os.Environ() {
-		fmt.Println(pair)
-		keyPair := strings.Split(pair, "=")
-		manager.viper.SetDefault(keyPair[0], keyPair[1])
-	}
-
-	viper.SetConfigName("application.yaml")
-	viper.SetConfigType("yaml")
-	manager.viper.AddConfigPath(".")
-	manager.viper.AutomaticEnv()
+	manager.viper.SetConfigName(os.Getenv("CONFIGURATION_FILE_NAME"))
+	manager.viper.SetConfigType(os.Getenv("CONFIGURATION_FILE_TYPE"))
+	manager.viper.AddConfigPath(os.Getenv("CONFIGURATION_PATH"))
 	manager.viper.ReadInConfig()
 	wg.Done()
 }
 
 func (manager *Manager) GetConfigFor(configKey string) string {
 	return manager.viper.GetString(configKey)
-}
-func (manager *Manager) GetStringMapFor(configKey string) map[string]string {
-	return manager.viper.GetStringMapString(configKey)
 }
