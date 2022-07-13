@@ -1,10 +1,14 @@
 package repository
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github/mrflick72/i18n-message/src/internal/web"
+	"net/http"
+	"os"
 	"testing"
 )
 
@@ -18,26 +22,81 @@ var (
 )
 
 func TestRestMessageRepository_Find(t *testing.T) {
+	os.Setenv("AWS_ACCESS_KEY_ID", "XXXXXXXXXXXX")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "XXXXXXXXXXXX")
+
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
 	lang := "it"
-	client := new(MockedWebClientObject)
+	buketName := "buket"
+	filePath := "messages_it.properties"
 
-	client.On("Get", &web.Request{
-		Url: serviceUrlFor(baseUrl, registrationName, application, lang),
-	}).Return(&web.Response{
-		Body:   body,
-		Status: 200,
-	})
+	client := s3.New(sess, &aws.Config{Region: aws.String("us-east-1"), Endpoint: aws.String("http://localhost:4566/")})
 
-	repository := RestMessageRepository{
-		Client:               client,
-		RepositoryServiceUrl: "http://localhost/repository-service",
-		RegistrationName:     "i18n-messages",
+	setUp(filePath, buketName, client, t)
+
+	repository := S3MessageRepository{
+		Client:    client,
+		BuketName: buketName,
 	}
 
-	actual, _ := repository.Find("AN_APPLICATION", lang, nil)
+	actual, err := repository.Find("AN_APPLICATION", lang, nil)
+	fmt.Println("err")
+	fmt.Println(err)
+
 	assert.EqualValues(t, *actual, expected)
+
+	tearDown(buketName, client)
 }
 
+func setUp(filePath string, buketName string, client *s3.S3, t *testing.T) {
+	result, err := client.CreateBucket(&s3.CreateBucketInput{Bucket: aws.String(buketName)})
+	if err != nil {
+		fmt.Println("error during the buket creation")
+		fmt.Println(err.Error())
+		t.Fail()
+	} else {
+		fmt.Println(result)
+	}
+
+	// Open the file from the file path
+	upFile, _ := os.Open(filePath)
+	defer upFile.Close()
+
+	// Get the file info
+	upFileInfo, _ := upFile.Stat()
+	var fileSize int64 = upFileInfo.Size()
+	fileBuffer := make([]byte, fileSize)
+	upFile.Read(fileBuffer)
+
+	_, err = client.PutObject(&s3.PutObjectInput{
+		Bucket:        aws.String(buketName),
+		Key:           aws.String("AN_APPLICATION/messages_it.properties"),
+		ACL:           aws.String("private"),
+		Body:          bytes.NewReader(fileBuffer),
+		ContentLength: aws.Int64(fileSize),
+		ContentType:   aws.String(http.DetectContentType(fileBuffer)),
+	})
+	if err != nil {
+		fmt.Println("error during the object upload")
+		fmt.Println(err.Error())
+		t.Fail()
+	}
+}
+
+func tearDown(buketName string, client *s3.S3) {
+	bucket, err := client.DeleteBucket(&s3.DeleteBucketInput{Bucket: aws.String(buketName)})
+	if err != nil {
+		fmt.Println("error")
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(bucket)
+	}
+}
+
+/*
 func TestRestMessageRepository_Find_WithoutA_Defined_Language(t *testing.T) {
 	client := new(MockedWebClientObject)
 
@@ -102,3 +161,4 @@ func serviceUrlFor(baseUrl string, registrationUrl string, application string, l
 			baseUrl, registrationUrl, application)
 	}
 }
+*/

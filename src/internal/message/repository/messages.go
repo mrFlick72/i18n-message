@@ -1,11 +1,10 @@
 package repository
 
 import (
-	"bufio"
-	"fmt"
-	"github/mrflick72/i18n-message/src/internal/strings/utils"
-	"github/mrflick72/i18n-message/src/internal/web"
-	"strings"
+	"bytes"
+	fmt "fmt"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/magiconair/properties"
 )
 
 var (
@@ -26,50 +25,38 @@ type MessageRepository interface {
 	Find(application string, language string, context map[string]string) (*Message, error)
 }
 
-type RestMessageRepository struct {
-	Client               web.Client
-	RepositoryServiceUrl string
-	RegistrationName     string
+type S3MessageRepository struct {
+	Client    *s3.S3
+	BuketName string
 }
 
-func (repository *RestMessageRepository) Find(application string, language string, context map[string]string) (*Message, error) {
-	result := make(Message)
-	repositoryServiceUrl := repository.repositoryUrlFor(application, language)
-	content := repository.contentFor(application, repositoryServiceUrl, context)
-
-	repository.loadFrom(content, result)
-
-	return &result, nil
-}
-
-func (repository *RestMessageRepository) contentFor(application string, repositoryServiceUrl string, context map[string]string) string {
-	webResponse, _ := repository.Client.Get(&web.Request{Url: repositoryServiceUrl, Header: context})
-	if webResponse.Status == translationNotFound {
-		repositoryServiceUrl := repository.repositoryUrlFor(application, noLanguage)
-		webResponse, _ = repository.Client.Get(&web.Request{Url: repositoryServiceUrl})
+func (repository *S3MessageRepository) Find(application string, language string, context map[string]string) (*Message, error) {
+	if language != "" {
+		language = "_" + language
 	}
-	content := webResponse.Body
-	return content
-}
+	objectKey := fmt.Sprintf("%s/messages%s.properties", application, language)
 
-func (repository *RestMessageRepository) loadFrom(content string, result Message) {
-	reader := strings.NewReader(content)
-	scanner := bufio.NewScanner(reader)
+	object, err := repository.Client.GetObject(&s3.GetObjectInput{
+		Bucket: &repository.BuketName,
+		Key:    &objectKey,
+	})
 
-	for scanner.Scan() {
-		split := strings.Split(scanner.Text(), spliteratorCharacter)
-		if len(split) == acceptableLength {
-			result[utils.TrimStace(split[propertyKeyPosition])] = utils.TrimStace(split[propertyValuePosition])
-		}
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (repository *RestMessageRepository) repositoryUrlFor(application string, language Language) string {
-	if language != noLanguage {
-		return fmt.Sprintf(patternWithLanguage,
-			repository.RepositoryServiceUrl, repository.RegistrationName, application, language)
-	} else {
-		return fmt.Sprintf(patternWithoutLanguage,
-			repository.RepositoryServiceUrl, repository.RegistrationName, application)
+	buf := new(bytes.Buffer)
+
+	body := object.Body
+	buf.ReadFrom(body)
+	defer body.Close()
+
+	properties, err := properties.Load(buf.Bytes(), properties.UTF8)
+	if err != nil {
+		return nil, err
 	}
+
+	var message = make(Message)
+	message = properties.Map()
+	return &message, nil
 }
