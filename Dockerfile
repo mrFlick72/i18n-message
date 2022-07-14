@@ -1,4 +1,4 @@
-FROM golang:1.16.5
+FROM golang:1.18.4
 
 VOLUME /var/log/onlyone-portal/logs
 WORKDIR /go/src/app
