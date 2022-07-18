@@ -1,13 +1,14 @@
 package application
 
 import (
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/kataras/iris/v12"
 	"github/mrflick72/i18n-message/src/api"
 	"github/mrflick72/i18n-message/src/configuration"
 	"github/mrflick72/i18n-message/src/internal/logging"
 	"github/mrflick72/i18n-message/src/internal/message/listener"
 	"github/mrflick72/i18n-message/src/internal/message/repository"
-	"github/mrflick72/i18n-message/src/internal/web"
 	"strconv"
 	"sync"
 	"time"
@@ -15,16 +16,19 @@ import (
 
 var manager = configuration.GetConfigurationManagerInstance()
 
-func ConfigureMessageRepository() repository.RestMessageRepository {
-	messageRepository := repository.RestMessageRepository{
-		Client:               web.New(),
-		RepositoryServiceUrl: manager.GetConfigFor("REPOSITORY_SERVICE_URL"),
-		RegistrationName:     manager.GetConfigFor("REGISTRATION_NAME"),
+func ConfigureMessageRepository() repository.S3MessageRepository {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	messageRepository := repository.S3MessageRepository{
+		Client:    s3.New(sess),
+		BuketName: manager.GetConfigFor("MESSAGES_BUKET"),
 	}
 	return messageRepository
 }
 
-func ConfigureMessageEndpoints(messageRepository repository.RestMessageRepository, app *iris.Application) {
+func ConfigureMessageEndpoints(messageRepository repository.S3MessageRepository, app *iris.Application) {
 	endpoints := api.MessageEndpoints{
 		Repository: &messageRepository,
 	}
