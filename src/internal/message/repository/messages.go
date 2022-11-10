@@ -2,20 +2,9 @@ package repository
 
 import (
 	"bytes"
-	fmt "fmt"
+	"fmt"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/magiconair/properties"
-)
-
-var (
-	patternWithLanguage    = "%s/documents/%s?path=%s&fileName=messages_%v&fileExt=properties"
-	patternWithoutLanguage = "%s/documents/%s?path=%s&fileName=messages&fileExt=properties"
-	acceptableLength       = 2
-	propertyKeyPosition    = 0
-	propertyValuePosition  = 1
-	translationNotFound    = 404
-	noLanguage             = ""
-	spliteratorCharacter   = "="
 )
 
 type Language = string
