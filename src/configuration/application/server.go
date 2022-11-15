@@ -15,10 +15,6 @@ func newWebServer() *iris.Application {
 	app := iris.New()
 	app.Use(recover.New())
 	app.Use(logger.New())
-	security.SetUpOAuth2(app, security.Jwk{
-		Url:    manager.GetConfigFor("security.jwk-uri"),
-		Client: web.New(),
-	}, strings.Split(manager.GetConfigFor("security.allowed-authority"), ","))
 	return app
 }
 
@@ -32,6 +28,10 @@ func NewActuatorServer(wg *sync.WaitGroup) {
 
 func NewApplicationServer(wg *sync.WaitGroup) {
 	app := newWebServer()
+	security.SetUpOAuth2(app, security.Jwk{
+		Url:    manager.GetConfigFor("security.jwk-uri"),
+		Client: web.New(),
+	}, strings.Split(manager.GetConfigFor("security.allowed-authority"), ","))
 	messageRepository := ConfigureMessageRepository()
 	ConfigureMessageEndpoints(messageRepository, app)
 
