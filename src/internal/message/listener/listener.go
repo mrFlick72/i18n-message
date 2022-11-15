@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var logger = logging.GetLoggerInstance()
+
 type UpdateSignalsListener struct {
 	queueMapping        map[string]string
 	toStop              bool
@@ -22,7 +24,7 @@ type UpdateSignalsListener struct {
 	logger              *logging.Logger
 }
 
-func New(queueMapping map[string]string, queueURL string, timeout int64, waitTimeSeconds int64, maxNumberOfMessages int64, sleep time.Duration, logger *logging.Logger) *UpdateSignalsListener {
+func New(queueMapping map[string]string, queueURL string, timeout int64, waitTimeSeconds int64, maxNumberOfMessages int64, sleep time.Duration) *UpdateSignalsListener {
 	return &UpdateSignalsListener{
 		queueMapping:        queueMapping,
 		queueURL:            queueURL,

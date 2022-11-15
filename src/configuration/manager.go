@@ -18,18 +18,18 @@ type Manager struct {
 func GetConfigurationManagerInstance() *Manager {
 	once.Do(func() {
 		configurationManager = &Manager{}
+		configurationManager.init()
 	})
 
 	return configurationManager
 }
-func (manager *Manager) Init(wg *sync.WaitGroup) {
+func (manager *Manager) init() {
 	manager.viper = viper.New()
 
 	manager.viper.SetConfigName(os.Getenv("CONFIGURATION_FILE_NAME"))
 	manager.viper.SetConfigType(os.Getenv("CONFIGURATION_FILE_TYPE"))
 	manager.viper.AddConfigPath(os.Getenv("CONFIGURATION_PATH"))
 	manager.viper.ReadInConfig()
-	wg.Done()
 }
 
 func (manager *Manager) GetConfigFor(configKey string) string {

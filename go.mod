@@ -9,6 +9,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.55
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
@@ -18,6 +19,7 @@ require (
 	github.com/kataras/golog v0.1.7 // indirect
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/klauspost/compress v1.15.8 // indirect
+	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magiconair/properties v1.8.6
 	github.com/microcosm-cc/bluemonday v1.0.19 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
@@ -39,11 +41,9 @@ require (
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee // indirect
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
 	golang.org/x/sys v0.0.0-20220712014510-0a85c31ab51e // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )

@@ -5,6 +5,9 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github/mrflick72/i18n-message/src/internal/heath"
+	"github/mrflick72/i18n-message/src/internal/web"
+	"github/mrflick72/i18n-message/src/middleware/security"
+	"strings"
 	"sync"
 )
 
@@ -25,6 +28,10 @@ func NewActuatorServer(wg *sync.WaitGroup) {
 
 func NewApplicationServer(wg *sync.WaitGroup) {
 	app := newWebServer()
+	security.SetUpOAuth2(app, security.Jwk{
+		Url:    manager.GetConfigFor("security.jwk-uri"),
+		Client: web.New(),
+	}, strings.Split(manager.GetConfigFor("security.allowed-authority"), ","))
 	messageRepository := ConfigureMessageRepository()
 	ConfigureMessageEndpoints(messageRepository, app)
 
