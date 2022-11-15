@@ -6,7 +6,6 @@ import (
 	"github.com/kataras/iris/v12"
 	"github/mrflick72/i18n-message/src/api"
 	"github/mrflick72/i18n-message/src/configuration"
-	"github/mrflick72/i18n-message/src/internal/logging"
 	"github/mrflick72/i18n-message/src/internal/message/listener"
 	"github/mrflick72/i18n-message/src/internal/message/repository"
 	"strconv"
@@ -49,6 +48,5 @@ func DocumentUpdatesListener(wg *sync.WaitGroup) {
 		waitTimeSeconds,
 		maxNumberOfMessages,
 		sleep,
-		logging.New(),
 	).Start(wg)
 }

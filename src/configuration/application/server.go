@@ -7,6 +7,7 @@ import (
 	"github/mrflick72/i18n-message/src/internal/heath"
 	"github/mrflick72/i18n-message/src/internal/web"
 	"github/mrflick72/i18n-message/src/middleware/security"
+	"strings"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ func newWebServer() *iris.Application {
 	security.SetUpOAuth2(app, security.Jwk{
 		Url:    manager.GetConfigFor("security.jwk-uri"),
 		Client: web.New(),
-	}, manager.GetConfigFor("security.allowed-authority"))
+	}, strings.Split(manager.GetConfigFor("security.allowed-authority"), ","))
 	return app
 }
 

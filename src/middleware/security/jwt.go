@@ -2,31 +2,43 @@ package security
 
 import (
 	"context"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
+	"github/mrflick72/i18n-message/src/internal/logging"
 	"time"
 )
 
-func SetUpOAuth2(app *iris.Application, jwk Jwk, role string) {
+var logger = logging.GetLoggerInstance()
+
+func SetUpOAuth2(app *iris.Application, jwk Jwk, role []string) {
 	sets, _ := jwk.JwkSets()
 	var middleware = NewOAuth2Middleware(sets, role)
 	app.Use(middleware)
 }
 
-func NewOAuth2Middleware(keySet jwk.Set, allowedAuthority string) func(ctx iris.Context) {
+func NewOAuth2Middleware(keySet jwk.Set, allowedAuthority []string) func(ctx iris.Context) {
 	return func(ctx iris.Context) {
 		authorization := authorizationHeaderFor(ctx)
 
-		jwt, _ := jwt.ParseString(authorization)
+		jwt, err := jwt.ParseString(authorization)
+		if err != nil {
+			logger.LogInfoFor(fmt.Sprintf("failed to create parse jwt: %v", err))
+
+			ctx.StatusCode(401)
+			return
+		}
+
 		if time.Now().After(jwt.Expiration()) {
 			ctx.StatusCode(401)
 			return
 		}
 		userName, _ := jwt.PrivateClaims()["user_name"].(string)
 		authorities, _ := jwt.PrivateClaims()["authorities"].([]interface{})
+		scopes, _ := jwt.PrivateClaims()["scope"].([]interface{})
 
-		if ok := contains(*toStringSlice(authorities), allowedAuthority); !ok {
+		if ok := allowedRole(authorities, allowedAuthority) || allowedRole(scopes, allowedAuthority); !ok {
 			ctx.StatusCode(403)
 			return
 		}
@@ -37,6 +49,15 @@ func NewOAuth2Middleware(keySet jwk.Set, allowedAuthority string) func(ctx iris.
 		ctx.ResetRequest(ctx.Request().WithContext(newContext))
 		ctx.Next()
 	}
+}
+
+func allowedRole(authorities []interface{}, allowedAuthority []string) bool {
+	for _, authority := range allowedAuthority {
+		if contains(*toStringSlice(authorities), authority) {
+			return true
+		}
+	}
+	return false
 }
 
 func contains(slice []string, item string) bool {

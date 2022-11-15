@@ -6,15 +6,28 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"os"
+	"sync"
 )
 
-var manager = configuration.GetConfigurationManagerInstance()
+var (
+	manager       = configuration.GetConfigurationManagerInstance()
+	loggerManager *Logger
+	once          sync.Once
+)
 
 type Logger struct {
 	logger *zap.Logger
 }
 
-func New() *Logger {
+func GetLoggerInstance() *Logger {
+	once.Do(func() {
+		loggerManager = new()
+	})
+
+	return loggerManager
+}
+
+func new() *Logger {
 	fileName := manager.GetConfigFor("logging.file.name")
 	log.Printf("log fileName: %v", fileName)
 	cfg := zap.NewProductionConfig()
